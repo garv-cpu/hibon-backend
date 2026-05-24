@@ -11,8 +11,8 @@
   "type": "module",
   "main": "src/server.ts",
   "scripts": {
-    "start": "node src/server.ts",
-    "dev": "nodemon src/server.ts",
+    "start": "tsx src/server.ts",
+    "dev": "nodemon --exec tsx src/server.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
     "build": "tsc"
