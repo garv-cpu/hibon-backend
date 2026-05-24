@@ -1,0 +1,55 @@
+import mongoose, {
+    Schema,
+    InferSchemaType
+} from "mongoose";
+
+const momentSchema = new Schema(
+    {
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: "User",
+            required: true
+        },
+
+        text: {
+            type: String,
+            required: true,
+            maxlength: 300
+        },
+
+        emoji: {
+            type: String,
+            required: true
+        },
+
+        prompt: {
+            type: Schema.Types.ObjectId,
+            ref: "Prompt",
+            default: null
+        },
+
+        visibility: {
+            type: String,
+            enum: ["friends"],
+            default: "friends"
+        },
+
+        reactionsCount: {
+            type: Number,
+            default: 0
+        }
+    },
+    {
+        timestamps: true
+    }
+);
+
+export type MomentDocument =
+    InferSchemaType<typeof momentSchema>;
+
+export const Moment =
+    mongoose.models.Moment ||
+    mongoose.model(
+        "Moment",
+        momentSchema
+    );
