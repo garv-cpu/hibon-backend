@@ -9,10 +9,13 @@
   "license": "ISC",
   "author": "Garv Balwani",
   "type": "module",
-  "main": "src/server.ts",
+  "main": "dist/bootstrap.js",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
-    "start": "node dist/server.js",
-    "dev": "nodemon --exec tsx src/server.ts",
+    "start": "node dist/bootstrap.js",
+    "dev": "nodemon --exec tsx src/bootstrap.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
     "build": "tsc"
