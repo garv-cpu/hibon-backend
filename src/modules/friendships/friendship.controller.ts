@@ -27,7 +27,10 @@ export const sendFriendRequest =
 
         // Find user by username
         const recipient = await User.findOne({
-            username: username
+            username: username,
+            "privacy.showInSearch": {
+                $ne: false
+            }
         });
 
         // User not found
@@ -44,6 +47,16 @@ export const sendFriendRequest =
             res.status(400).json({
                 success: false,
                 message: "You cannot add yourself"
+            });
+            return;
+        }
+
+        if (
+            recipient.privacy?.allowFriendRequests === false
+        ) {
+            res.status(403).json({
+                success: false,
+                message: "This user is not accepting friend requests"
             });
             return;
         }

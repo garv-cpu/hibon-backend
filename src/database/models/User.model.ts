@@ -105,6 +105,83 @@ const userSchema = new Schema(
         lastSeenAt: {
             type: Date
         },
+
+        notificationPreferences: {
+            friendRequests: {
+                type: Boolean,
+                default: true
+            },
+            reactions: {
+                type: Boolean,
+                default: true
+            },
+            streakReminders: {
+                type: Boolean,
+                default: true
+            },
+            reminderTime: {
+                type: String,
+                default: "20:00"
+            },
+            weeklyDigest: {
+                type: Boolean,
+                default: true
+            },
+            momentPosted: {
+                type: Boolean,
+                default: true
+            }
+        },
+
+        preferences: {
+            theme: {
+                type: String,
+                enum: [
+                    "system",
+                    "dark",
+                    "light"
+                ],
+                default: "dark"
+            },
+            accentColor: {
+                type: String,
+                default: "#F5A623"
+            },
+            fontScale: {
+                type: Number,
+                default: 1
+            }
+        },
+
+        privacy: {
+            profileVisibility: {
+                type: String,
+                enum: [
+                    "friends",
+                    "private"
+                ],
+                default: "friends"
+            },
+            showStreakOnProfile: {
+                type: Boolean,
+                default: true
+            },
+            showInSearch: {
+                type: Boolean,
+                default: true
+            },
+            allowFriendRequests: {
+                type: Boolean,
+                default: true
+            }
+        },
+
+        blockedUsers: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "User"
+            }
+        ]
     },
     {
         timestamps: true

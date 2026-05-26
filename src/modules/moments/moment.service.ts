@@ -145,7 +145,7 @@ export class MomentService {
     })
       .populate(
         "user",
-        "username avatar avatarEmoji currentStreak"
+        "username avatar avatarEmoji currentStreak privacy.showStreakOnProfile"
       )
 
       .sort({
@@ -188,9 +188,20 @@ export class MomentService {
     return moments.map((moment) => {
       const momentId =
         moment._id.toString();
+      const momentObject =
+        moment.toObject();
+
+      if (
+        momentObject.user &&
+        typeof momentObject.user === "object" &&
+        momentObject.user._id?.toString() !== userId &&
+        momentObject.user.privacy?.showStreakOnProfile === false
+      ) {
+        momentObject.user.currentStreak = 0;
+      }
 
       return {
-        ...moment.toObject(),
+        ...momentObject,
         reactions: reactions.filter(
           (reaction) =>
             reaction.moment.toString() ===
