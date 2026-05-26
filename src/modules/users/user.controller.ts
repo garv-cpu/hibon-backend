@@ -154,6 +154,22 @@ export const getBlockedUsers =
     );
   });
 
+export const blockUser =
+  asyncHandler(async (req, res) => {
+    const blockedUsers =
+      await UserService.blockUser(
+        req.userId!,
+        String(req.params.userId)
+      );
+
+    res.status(201).json(
+      new ApiResponse(
+        "User blocked",
+        blockedUsers
+      )
+    );
+  });
+
 export const unblockUser =
   asyncHandler(async (req, res) => {
     const blockedUsers =

@@ -9,13 +9,13 @@ import {
     generateRefreshToken
 } from "./auth.utils.js";
 
-import { hashPhone } from "../../utils/hashPhone.js";
+import { hashPhoneOptional } from "../../utils/hashPhone.js";
 
 interface RegisterInput {
     username: string;
     email: string;
     password: string;
-    phoneNumber: string;
+    phoneNumber?: string;
 }
 
 interface LoginInput {
@@ -43,13 +43,19 @@ export class AuthService {
             await bcrypt.hash(data.password, 12);
 
         const user = await User.create({
-            ...data,
+            username: data.username,
+
+            email: data.email,
 
             password: hashedPassword,
 
-            phoneHash: hashPhone(
+            ...(data.phoneNumber?.trim() && {
+              phoneNumber: data.phoneNumber,
+
+              phoneHash: hashPhoneOptional(
                 data.phoneNumber
-            )
+              )
+            })
         });
 
         const accessToken =

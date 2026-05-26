@@ -107,6 +107,30 @@ export class MomentService {
   ) {
     await cleanupExpiredMoments();
 
+    const currentUser =
+      await User.findById(userId)
+        .select("blockedUsers")
+        .lean();
+
+    const blockedByMe =
+      (currentUser?.blockedUsers || [])
+        .map((id: any) => id.toString());
+
+    const blockedMeUsers =
+      await User.find({
+        blockedUsers: userId
+      })
+        .select("_id")
+        .lean();
+
+    const hiddenUserIds =
+      new Set<string>([
+        ...blockedByMe,
+        ...blockedMeUsers.map((user) =>
+          user._id.toString()
+        )
+      ]);
+
     const friendships =
       await Friendship.find({
         status: "accepted",
@@ -129,6 +153,12 @@ export class MomentService {
 
           return friendship.requester;
         }
+      )
+      .filter(
+        (id: any) =>
+          !hiddenUserIds.has(
+            id.toString()
+          )
       );
 
     const moments =

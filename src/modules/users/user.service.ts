@@ -34,6 +34,7 @@ interface PreferencesInput {
   theme?: "system" | "dark" | "light";
   accentColor?: string;
   fontScale?: number;
+  language?: "en" | "hi" | "es";
 }
 
 interface PrivacyInput {
@@ -55,7 +56,8 @@ const defaultNotificationPreferences = {
 const defaultPreferences = {
   theme: "dark",
   accentColor: "#F5A623",
-  fontScale: 1
+  fontScale: 1,
+  language: "en"
 };
 
 const defaultPrivacy = {
@@ -288,6 +290,42 @@ export class UserService {
       userId,
       {
         $pull: {
+          blockedUsers:
+            blockedUserId
+        }
+      }
+    );
+
+    return this.getBlockedUsers(userId);
+  }
+
+  static async blockUser(
+    userId: string,
+    blockedUserId: string
+  ) {
+    if (userId === blockedUserId) {
+      throw new ApiError(
+        400,
+        "You cannot block yourself"
+      );
+    }
+
+    const target =
+      await User.findById(blockedUserId)
+        .select("_id")
+        .lean();
+
+    if (!target) {
+      throw new ApiError(
+        404,
+        "User not found"
+      );
+    }
+
+    await User.findByIdAndUpdate(
+      userId,
+      {
+        $addToSet: {
           blockedUsers:
             blockedUserId
         }

@@ -150,6 +150,15 @@ const userSchema = new Schema(
             fontScale: {
                 type: Number,
                 default: 1
+            },
+            language: {
+                type: String,
+                enum: [
+                    "en",
+                    "hi",
+                    "es"
+                ],
+                default: "en"
             }
         },
 

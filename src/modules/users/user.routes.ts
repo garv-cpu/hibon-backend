@@ -3,6 +3,7 @@ import { Router } from "express";
 import { protect } from "../auth/auth.middleware.js";
 import { validate } from "../../middleware/validate.middleware.js";
 import {
+  blockUser,
   deleteMe,
   getBlockedUsers,
   getMe,
@@ -81,6 +82,12 @@ router.get(
   "/blocked",
   protect,
   getBlockedUsers
+);
+
+router.post(
+  "/block/:userId",
+  protect,
+  blockUser
 );
 
 router.delete(

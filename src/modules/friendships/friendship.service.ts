@@ -36,6 +36,32 @@ export class FriendshipService {
       );
     }
 
+    const requester =
+      await User.findById(requesterId)
+        .select("blockedUsers")
+        .lean();
+
+    const requesterBlocked =
+      (requester?.blockedUsers || [])
+        .some(
+          (id: any) =>
+            id.toString() === recipientId
+        );
+
+    const recipientBlocked =
+      (recipient.blockedUsers || [])
+        .some(
+          (id: any) =>
+            id.toString() === requesterId
+        );
+
+    if (requesterBlocked || recipientBlocked) {
+      throw new ApiError(
+        403,
+        "Friend requests are not available for this user"
+      );
+    }
+
     const existing = await Friendship.findOne({
       $or: [
         {
@@ -130,6 +156,31 @@ export class FriendshipService {
   static async getFriends(
     userId: string
   ) {
+    const currentUser =
+      await User.findById(userId)
+        .select("blockedUsers")
+        .lean();
+
+    const blockedByMe =
+      new Set(
+        (currentUser?.blockedUsers || [])
+          .map((id: any) => id.toString())
+      );
+
+    const blockedMeUsers =
+      await User.find({
+        blockedUsers: userId
+      })
+        .select("_id")
+        .lean();
+
+    const blockedMe =
+      new Set(
+        blockedMeUsers.map((user) =>
+          user._id.toString()
+        )
+      );
+
     const friendships =
       await Friendship.find({
       status: "accepted",
@@ -228,10 +279,17 @@ export class FriendshipService {
           isOnline:
             onlineUsers.has(friendId),
           lastSeenAt: friend.lastSeenAt,
+          isBlockedByMe:
+            blockedByMe.has(friendId),
+          hasBlockedMe:
+            blockedMe.has(friendId),
           lastMoment:
-            latestMomentByUser.get(
-              friendId
-            ) ?? null
+            blockedByMe.has(friendId) ||
+            blockedMe.has(friendId)
+              ? null
+              : latestMomentByUser.get(
+                  friendId
+                ) ?? null
         };
       }
     );

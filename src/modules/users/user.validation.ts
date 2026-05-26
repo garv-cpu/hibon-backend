@@ -73,6 +73,13 @@ export const preferencesSchema =
       .number()
       .min(0.9)
       .max(1.12)
+      .optional(),
+    language: z
+      .enum([
+        "en",
+        "hi",
+        "es"
+      ])
       .optional()
   });
 
