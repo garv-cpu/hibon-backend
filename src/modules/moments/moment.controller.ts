@@ -9,6 +9,10 @@ import { Friendship } from "../../database/models/Friendship.model.js";
 import { User } from "../../database/models/User.model.js";
 import { getIO } from "../../sockets/socket.server.js";
 import { onlineUsers } from "../../sockets/onlineUsers.js";
+import {
+  cleanupExpiredMoments,
+  getMomentExpiryCutoff
+} from "./moment.expiry.js";
 
 export const createMoment =
   asyncHandler(
@@ -123,9 +127,14 @@ export const getMyMoments =
       req: Request,
       res: Response
     ) => {
+      await cleanupExpiredMoments();
+
       const moments =
         await Moment.find({
-          user: req.userId
+          user: req.userId,
+          createdAt: {
+            $gte: getMomentExpiryCutoff()
+          }
         })
           .sort({
             createdAt: -1

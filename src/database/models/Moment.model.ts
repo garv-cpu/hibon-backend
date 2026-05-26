@@ -59,6 +59,11 @@ const momentSchema = new Schema(
   }
 );
 
+momentSchema.index(
+  { createdAt: 1 },
+  { expireAfterSeconds: 60 * 60 * 24 }
+);
+
 export type MomentDocument =
   InferSchemaType<typeof momentSchema>;
 

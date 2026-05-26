@@ -6,6 +6,10 @@ import { getIO } from "../../sockets/socket.server.js";
 import { onlineUsers } from "../../sockets/onlineUsers.js";
 import { User } from "../../database/models/User.model.js";
 import { sendPushToUser } from "../../lib/pushNotifications.js";
+import {
+  cleanupExpiredMoments,
+  getMomentExpiryCutoff
+} from "../moments/moment.expiry.js";
 
 export class ReactionService {
   static async reactToMoment(
@@ -13,11 +17,16 @@ export class ReactionService {
     momentId: string,
     emoji: string
   ) {
+    await cleanupExpiredMoments();
 
     const moment =
       await Moment.findById(momentId);
 
-    if (!moment) {
+    if (
+      !moment ||
+      moment.createdAt <
+        getMomentExpiryCutoff()
+    ) {
       throw new ApiError(
         404,
         "Moment not found"

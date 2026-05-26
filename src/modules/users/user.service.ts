@@ -1,6 +1,10 @@
 import { User } from "../../database/models/User.model.js";
 import { Moment } from "../../database/models/Moment.model.js";
 import { ApiError } from "../../utils/ApiError.js";
+import {
+  cleanupExpiredMoments,
+  getMomentExpiryCutoff
+} from "../moments/moment.expiry.js";
 
 interface UpdateMeInput {
   name?: string;
@@ -10,6 +14,8 @@ interface UpdateMeInput {
 }
 
 const toProfileResponse = async (userId: string) => {
+  await cleanupExpiredMoments();
+
   const user =
     await User.findById(userId).lean();
 
@@ -22,7 +28,10 @@ const toProfileResponse = async (userId: string) => {
 
   const totalMoments =
     await Moment.countDocuments({
-      user: userId
+      user: userId,
+      createdAt: {
+        $gte: getMomentExpiryCutoff()
+      }
     });
 
   return {

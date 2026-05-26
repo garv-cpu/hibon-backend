@@ -13,6 +13,10 @@ import { ApiError } from "../../utils/ApiError.js";
 import { isSameDay } from "./helpers/date.helper.js";
 
 import { calculateStreak } from "./helpers/streak.helper.js";
+import {
+  cleanupExpiredMoments,
+  getMomentExpiryCutoff
+} from "./moment.expiry.js";
 
 interface CreateMomentInput {
   text: string;
@@ -101,6 +105,8 @@ export class MomentService {
   static async getFeed(
     userId: string
   ) {
+    await cleanupExpiredMoments();
+
     const friendships =
       await Friendship.find({
         status: "accepted",
@@ -127,6 +133,9 @@ export class MomentService {
 
     const moments =
       await Moment.find({
+      createdAt: {
+        $gte: getMomentExpiryCutoff()
+      },
       user: {
         $in: [
           ...friendIds,
