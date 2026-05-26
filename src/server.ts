@@ -44,6 +44,26 @@ const startServer = async () => {
       `🚀 Server running on port ${env.PORT}`
     );
   });
+
+  const shutdown = (signal: NodeJS.Signals) => {
+    logger.info({ signal }, "Shutdown signal received");
+
+    server.close((error) => {
+      if (error) {
+        logger.error(error, "Failed to close HTTP server cleanly");
+        process.exit(1);
+      }
+
+      logger.info("HTTP server closed cleanly");
+      process.exit(0);
+    });
+  };
+
+  process.on("SIGTERM", shutdown);
+  process.on("SIGINT", shutdown);
 };
 
-startServer();
+startServer().catch((error) => {
+  logger.error(error, "Failed to start server");
+  process.exit(1);
+});
