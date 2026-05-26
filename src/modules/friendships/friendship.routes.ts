@@ -12,7 +12,8 @@ import {
 import {
     sendFriendRequest,
     respondFriendRequest,
-    getFriends
+    getFriends,
+    getPendingRequests
 } from "./friendship.controller.js";
 
 const router = Router();
@@ -33,6 +34,12 @@ router.post(
         respondFriendRequestSchema
     ),
     respondFriendRequest
+);
+
+router.get(
+    "/requests",
+    protect,
+    getPendingRequests
 );
 
 router.get(

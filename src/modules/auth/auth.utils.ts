@@ -31,7 +31,11 @@ export const serializeUser = (
     _id: user._id,
     username: user.username,
     email: user.email,
+    name: user.name || user.username,
     avatar: user.avatar,
+    avatarEmoji:
+        user.avatarEmoji || "🌸",
+    bio: user.bio || "",
     currentStreak:
         user.currentStreak,
 

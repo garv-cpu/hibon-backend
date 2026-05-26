@@ -2,7 +2,8 @@ import { Router } from "express";
 
 import {
     createMoment,
-    getFeed
+    getFeed,
+    getMyMoments
 } from "./moment.controller.js";
 
 import { protect } from "../auth/auth.middleware.js";
@@ -18,6 +19,12 @@ router.post(
     protect,
     validate(createMomentSchema),
     createMoment
+);
+
+router.get(
+    "/me",
+    protect,
+    getMyMoments
 );
 
 router.get(

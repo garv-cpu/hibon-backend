@@ -2,45 +2,44 @@ import { Request, Response } from "express";
 
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
+import { ReelService } from "./reel.service.js";
 
-import { UserService } from "./user.service.js";
-
-export const getMe =
+export const getMyReels =
   asyncHandler(
     async (
       req: Request,
       res: Response
     ) => {
-      const profile =
-        await UserService.getMe(
+      const reels =
+        await ReelService.getMyReels(
           req.userId!
         );
 
       res.json(
         new ApiResponse(
-          "Profile fetched",
-          profile
+          "Reels fetched",
+          reels
         )
       );
     }
   );
 
-export const updateMe =
+export const generateReel =
   asyncHandler(
     async (
       req: Request,
       res: Response
     ) => {
-      const profile =
-        await UserService.updateMe(
+      const reel =
+        await ReelService.generate(
           req.userId!,
           req.body
         );
 
-      res.json(
+      res.status(201).json(
         new ApiResponse(
-          "Profile updated",
-          profile
+          "Reel generated",
+          reel
         )
       );
     }

@@ -9,10 +9,13 @@ import {
     generateRefreshToken
 } from "./auth.utils.js";
 
+import { hashPhone } from "../../utils/hashPhone.js";
+
 interface RegisterInput {
     username: string;
     email: string;
     password: string;
+    phoneNumber: string;
 }
 
 interface LoginInput {
@@ -41,7 +44,12 @@ export class AuthService {
 
         const user = await User.create({
             ...data,
-            password: hashedPassword
+
+            password: hashedPassword,
+
+            phoneHash: hashPhone(
+                data.phoneNumber
+            )
         });
 
         const accessToken =
@@ -58,7 +66,10 @@ export class AuthService {
             _id: user._id,
             username: user.username,
             email: user.email,
+            name: user.name || user.username,
             avatar: user.avatar,
+            avatarEmoji: user.avatarEmoji,
+            bio: user.bio,
             currentStreak: user.currentStreak,
             longestStreak: user.longestStreak
         };
@@ -109,7 +120,10 @@ export class AuthService {
             _id: user._id,
             username: user.username,
             email: user.email,
+            name: user.name || user.username,
             avatar: user.avatar,
+            avatarEmoji: user.avatarEmoji,
+            bio: user.bio,
             currentStreak: user.currentStreak,
             longestStreak: user.longestStreak
         };

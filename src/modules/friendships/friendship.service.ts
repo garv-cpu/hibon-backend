@@ -1,8 +1,14 @@
 import { Friendship } from "../../database/models/Friendship.model.js";
 
+import { Moment } from "../../database/models/Moment.model.js";
+
 import { User } from "../../database/models/User.model.js";
 
 import { ApiError } from "../../utils/ApiError.js";
+
+import { onlineUsers } from "../../sockets/onlineUsers.js";
+
+import { isSameDay } from "../moments/helpers/date.helper.js";
 
 export class FriendshipService {
   static async sendRequest(
@@ -30,17 +36,33 @@ export class FriendshipService {
       );
     }
 
-    const existing =
-      await Friendship.findOne({
-        requester: requesterId,
-        recipient: recipientId
-      });
+    const existing = await Friendship.findOne({
+      $or: [
+        {
+          requester: requesterId,
+          recipient: recipientId
+        },
+        {
+          requester: recipientId,
+          recipient: requesterId
+        }
+      ]
+    });
 
     if (existing) {
-      throw new ApiError(
-        400,
-        "Request already exists"
-      );
+      if (existing.status === "pending") {
+        throw new ApiError(
+          400,
+          "Friend request already pending"
+        );
+      }
+
+      if (existing.status === "accepted") {
+        throw new ApiError(
+          400,
+          "You are already friends"
+        );
+      }
     }
 
     return await Friendship.create({
@@ -108,7 +130,8 @@ export class FriendshipService {
   static async getFriends(
     userId: string
   ) {
-    return await Friendship.find({
+    const friendships =
+      await Friendship.find({
       status: "accepted",
 
       $or: [
@@ -118,11 +141,131 @@ export class FriendshipService {
     })
       .populate(
         "requester",
-        "username avatar"
+        "username avatar avatarEmoji currentStreak lastMomentDate lastSeenAt"
       )
       .populate(
         "recipient",
-        "username avatar"
+        "username avatar avatarEmoji currentStreak lastMomentDate lastSeenAt"
+      )
+      .lean();
+
+    const friends =
+      friendships.map(
+        (friendship: any) => {
+          const requesterId =
+            friendship.requester?._id?.toString();
+
+          return requesterId === userId
+            ? friendship.recipient
+            : friendship.requester;
+        }
       );
+
+    const friendIds =
+      friends
+        .map((friend: any) =>
+          friend?._id?.toString()
+        )
+        .filter(Boolean);
+
+    const latestMoments =
+      await Moment.find({
+        user: {
+          $in: friendIds
+        }
+      })
+        .sort({
+          createdAt: -1
+        })
+        .lean();
+
+    const latestMomentByUser =
+      new Map<string, any>();
+
+    latestMoments.forEach(
+      (moment: any) => {
+        const momentUserId =
+          moment.user?.toString();
+
+        if (
+          momentUserId &&
+          !latestMomentByUser.has(
+            momentUserId
+          )
+        ) {
+          latestMomentByUser.set(
+            momentUserId,
+            {
+              _id: moment._id.toString(),
+              text: moment.text,
+              emoji: moment.emoji,
+              createdAt: moment.createdAt
+            }
+          );
+        }
+      }
+    );
+
+    return friends.map(
+      (friend: any) => {
+        const friendId =
+          friend._id.toString();
+
+        return {
+          _id: friendId,
+          username: friend.username,
+          avatar: friend.avatar,
+          avatarEmoji:
+            friend.avatarEmoji || "🌸",
+          currentStreak:
+            friend.currentStreak ?? 0,
+          hasPostedToday:
+            !!friend.lastMomentDate &&
+            isSameDay(
+              friend.lastMomentDate,
+              new Date()
+            ),
+          isOnline:
+            onlineUsers.has(friendId),
+          lastSeenAt: friend.lastSeenAt,
+          lastMoment:
+            latestMomentByUser.get(
+              friendId
+            ) ?? null
+        };
+      }
+    );
+  }
+
+  static async getPendingRequests(
+    userId: string
+  ) {
+    const requests =
+      await Friendship.find({
+        recipient: userId,
+        status: "pending"
+      })
+        .populate(
+          "requester",
+          "username avatar avatarEmoji"
+        )
+        .sort({
+          createdAt: -1
+        })
+        .lean();
+
+    return requests.map(
+      (request: any) => ({
+        _id: request._id.toString(),
+        requesterId:
+          request.requester?._id?.toString(),
+        username:
+          request.requester?.username,
+        avatar: request.requester?.avatar,
+        avatarEmoji:
+          request.requester?.avatarEmoji || "🌸",
+        createdAt: request.createdAt
+      })
+    );
   }
 }

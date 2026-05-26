@@ -14,6 +14,11 @@ import authRoutes from "./modules/auth/auth.routes.js";
 import momentRoutes from "./modules/moments/moment.routes.js";
 import friendshipRoutes from "./modules/friendships/friendship.routes.js";
 import reactionRoutes from "./modules/reactions/reaction.routes.js";
+import notificationRoutes from "./modules/notifications/notification.routes.js";
+import contactsRoutes from "./modules/contacts/contacts.routes.js";
+import promptRoutes from "./modules/prompts/prompt.routes.js";
+import userRoutes from "./modules/users/user.routes.js";
+import reelRoutes from "./modules/reels/reel.routes.js";
 
 const app = express();
 
@@ -35,7 +40,7 @@ app.use(cookieParser());
 app.use(
     rateLimit({
         windowMs: 15 * 60 * 1000,
-        max: 100
+        max: 9999
     })
 );
 
@@ -59,6 +64,29 @@ app.use(
 app.use(
     "/api/v1/reactions",
     reactionRoutes
+);
+app.use(
+    "/api/v1/notifications",
+    notificationRoutes
+);
+app.use(
+    "/api/v1/contacts",
+    contactsRoutes
+);
+
+app.use(
+  "/api/v1/prompts",
+  promptRoutes
+);
+
+app.use(
+  "/api/v1/users",
+  userRoutes
+);
+
+app.use(
+  "/api/v1/reels",
+  reelRoutes
 );
 
 app.use(notFoundMiddleware);

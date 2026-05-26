@@ -2,6 +2,10 @@ import { Server } from "socket.io";
 
 import { onlineUsers } from "./onlineUsers.js";
 
+import { User } from "../database/models/User.model.js";
+import jwt from "jsonwebtoken";
+import { env } from "../config/env.js";
+
 let io: Server;
 
 export const initSocket = (
@@ -10,9 +14,42 @@ export const initSocket = (
     io = new Server(server, {
         cors: {
             origin:
-                "http://localhost:5173",
+                env.CLIENT_URL,
 
             credentials: true
+        }
+    });
+
+    io.use((socket, next) => {
+        try {
+            const token =
+                socket.handshake.auth
+                    ?.token;
+
+            if (!token) {
+                throw new Error(
+                    "Socket token missing"
+                );
+            }
+
+            const decoded =
+                jwt.verify(
+                    token,
+                    env.JWT_ACCESS_SECRET
+                ) as {
+                    userId: string;
+                };
+
+            socket.data.userId =
+                decoded.userId;
+
+            next();
+        } catch {
+            next(
+                new Error(
+                    "Socket authentication failed"
+                )
+            );
         }
     });
 
@@ -22,12 +59,21 @@ export const initSocket = (
             socket.id
         );
 
-        socket.on(
-            "user:online",
-            (userId: string) => {
+        const userId =
+            socket.data.userId as string;
+
+        const markOnline =
+            async () => {
                 onlineUsers.set(
                     userId,
                     socket.id
+                );
+
+                await User.findByIdAndUpdate(
+                    userId,
+                    {
+                        isOnline: true
+                    }
                 );
 
                 io.emit(
@@ -36,23 +82,33 @@ export const initSocket = (
                         onlineUsers.keys()
                     )
                 );
-            }
+            };
+
+        markOnline();
+
+        socket.on(
+            "user:online",
+            markOnline
         );
 
         socket.on(
             "disconnect",
-            () => {
-                for (const [
-                    userId,
-                    socketId
-                ] of onlineUsers.entries()) {
-                    if (
-                        socketId === socket.id
-                    ) {
-                        onlineUsers.delete(
-                            userId
-                        );
-                    }
+            async () => {
+                if (
+                    onlineUsers.get(userId) ===
+                    socket.id
+                ) {
+                    onlineUsers.delete(
+                        userId
+                    );
+
+                    await User.findByIdAndUpdate(
+                        userId,
+                        {
+                            isOnline: false,
+                            lastSeenAt: new Date()
+                        }
+                    );
                 }
 
                 io.emit(

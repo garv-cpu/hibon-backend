@@ -12,6 +12,13 @@ const userSchema = new Schema(
             unique: true
         },
 
+        name: {
+            type: String,
+            trim: true,
+            maxlength: 50,
+            default: ""
+        },
+
         email: {
             type: String,
             required: true,
@@ -63,6 +70,11 @@ const userSchema = new Schema(
             default: ""
         },
 
+        avatarEmoji: {
+            type: String,
+            default: "🌸"
+        },
+
         streakCount: {
             type: Number,
             default: 0
@@ -72,7 +84,27 @@ const userSchema = new Schema(
             type: String,
             default: null,
             select: false
-        }
+        },
+        phoneNumber: {
+            type: String,
+            unique: true,
+            sparse: true
+        },
+
+        phoneHash: {
+            type: String,
+            unique: true,
+            sparse: true
+        },
+
+        isOnline: {
+            type: Boolean,
+            default: false
+        },
+
+        lastSeenAt: {
+            type: Date
+        },
     },
     {
         timestamps: true
