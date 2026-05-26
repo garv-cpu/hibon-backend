@@ -66,7 +66,7 @@ export class ReactionService {
     ) {
       const reactor =
         await User.findById(userId).select(
-          "username avatarEmoji"
+          "username avatar avatarEmoji"
         );
 
       await NotificationService.createNotification({
@@ -95,6 +95,8 @@ export class ReactionService {
           reactor?.username,
         reactorAvatarEmoji:
           reactor?.avatarEmoji || "🌸",
+        reactorAvatar:
+          reactor?.avatar || "",
         emoji,
         momentId,
         momentPreview:

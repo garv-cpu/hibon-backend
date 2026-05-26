@@ -157,7 +157,7 @@ export class MomentService {
         })
           .populate(
             "user",
-            "username name avatarEmoji"
+            "username name avatar avatarEmoji"
           )
           .lean(),
 
@@ -168,7 +168,7 @@ export class MomentService {
         })
           .populate(
             "user",
-            "username name avatarEmoji"
+            "username name avatar avatarEmoji"
           )
           .sort({
             createdAt: 1

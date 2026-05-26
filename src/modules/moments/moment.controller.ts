@@ -40,7 +40,7 @@ export const createMoment =
 
       const user =
         await User.findById(req.userId)
-          .select("username avatarEmoji");
+          .select("username avatar avatarEmoji");
 
       const friendships =
         await Friendship.find({
@@ -77,6 +77,8 @@ export const createMoment =
                 avatarEmoji:
                   user?.avatarEmoji ||
                   "🌸",
+                avatar:
+                  user?.avatar || "",
                 momentPreview:
                   moment.text.slice(0, 90),
                 emoji: moment.emoji

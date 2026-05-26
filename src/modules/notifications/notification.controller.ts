@@ -14,7 +14,7 @@ export const getNotifications = async (
     })
       .populate(
         "sender",
-        "username name avatarEmoji"
+        "username name avatar avatarEmoji"
       )
       .sort({
         createdAt: -1

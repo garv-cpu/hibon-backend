@@ -56,7 +56,7 @@ export const sendFriendRequest =
 
         const currentUser =
             await User.findById(req.userId)
-                .select("username avatarEmoji");
+                .select("username avatar avatarEmoji");
 
         await NotificationService.createNotification({
             recipient: recipient._id.toString(),
@@ -84,6 +84,9 @@ export const sendFriendRequest =
                         requesterAvatarEmoji:
                             currentUser?.avatarEmoji ||
                             "🌸",
+                        requesterAvatar:
+                            currentUser?.avatar ||
+                            "",
                         requestId:
                             friendship._id.toString()
                     }
@@ -130,7 +133,7 @@ export const respondFriendRequest =
                     await User.findById(
                         req.userId
                     ).select(
-                        "username avatarEmoji"
+                        "username avatar avatarEmoji"
                     );
 
                 const requesterId =
@@ -151,7 +154,10 @@ export const respondFriendRequest =
                                     acceptor?.username,
                                 acceptorAvatarEmoji:
                                     acceptor?.avatarEmoji ||
-                                    "🌸"
+                                    "🌸",
+                                acceptorAvatar:
+                                    acceptor?.avatar ||
+                                    ""
                             }
                         );
                 }

@@ -45,7 +45,7 @@ export class NotificationService {
         notification._id
       ).populate(
         "sender",
-        "username name avatarEmoji"
+        "username name avatar avatarEmoji"
       );
 
     // REALTIME SOCKET

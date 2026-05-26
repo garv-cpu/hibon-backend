@@ -6,6 +6,7 @@ interface UpdateMeInput {
   name?: string;
   bio?: string;
   avatarEmoji?: string;
+  avatar?: string;
 }
 
 const toProfileResponse = async (userId: string) => {
@@ -66,6 +67,9 @@ export class UserService {
           }),
           ...(data.avatarEmoji !== undefined && {
             avatarEmoji: data.avatarEmoji
+          }),
+          ...(data.avatar !== undefined && {
+            avatar: data.avatar
           })
         }
       },

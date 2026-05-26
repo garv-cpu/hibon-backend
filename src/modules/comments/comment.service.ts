@@ -31,7 +31,7 @@ export class CommentService {
     return Comment.findById(comment._id)
       .populate(
         "user",
-        "username name avatarEmoji"
+        "username name avatar avatarEmoji"
       )
       .lean();
   }
@@ -44,7 +44,7 @@ export class CommentService {
     })
       .populate(
         "user",
-        "username name avatarEmoji"
+        "username name avatar avatarEmoji"
       )
       .sort({
         createdAt: 1

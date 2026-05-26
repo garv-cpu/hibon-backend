@@ -19,5 +19,10 @@ export const updateMeSchema =
       .trim()
       .min(1)
       .max(8)
+      .optional(),
+
+    avatar: z
+      .string()
+      .max(4_000_000)
       .optional()
   });
