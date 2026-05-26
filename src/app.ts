@@ -47,10 +47,10 @@ app.use(
 );
 
 app.get("/health", (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "Hibon API running"
-    });
+  res.status(200).json({
+    success: true,
+    message: "Hibon backend alive"
+  });
 });
 
 // Routes
