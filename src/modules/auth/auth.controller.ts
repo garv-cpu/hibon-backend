@@ -5,6 +5,11 @@ import { AuthService } from "./auth.service.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 
 import { ApiResponse } from "../../utils/ApiResponse.js";
+import { ApiError } from "../../utils/ApiError.js";
+import jwt from "jsonwebtoken";
+import { User } from "../../database/models/User.model.js";
+import { env } from "../../config/env.js";
+import { generateAccessToken } from "./auth.utils.js";
 
 export const register = asyncHandler(
   async (req: Request, res: Response) => {
@@ -80,3 +85,34 @@ export const login = asyncHandler(
       );
   }
 );
+
+export const refresh = async (req: Request, res: Response) => {
+  const token = req.cookies?.refreshToken;
+
+  if (!token) {
+    throw new ApiError(401, "No refresh token");
+  }
+
+  try {
+    const decoded = jwt.verify(
+      token,
+      env.JWT_REFRESH_SECRET
+    ) as { userId: string };
+
+    const user = await User.findById(decoded.userId);
+
+    if (!user || user.refreshToken !== token) {
+      throw new ApiError(401, "Invalid refresh token");
+    }
+
+    const newAccessToken = generateAccessToken(user._id.toString());
+
+    return res.status(200).json(
+      new ApiResponse("Token refreshed", {
+        accessToken: newAccessToken
+      })
+    );
+  } catch (err) {
+    throw new ApiError(401, "Refresh failed");
+  }
+};

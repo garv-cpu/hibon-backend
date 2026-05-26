@@ -2,7 +2,8 @@ import { Router } from "express";
 
 import {
   register,
-  login
+  login,
+  refresh
 } from "./auth.controller.js";
 
 import {
@@ -25,5 +26,7 @@ router.post(
   validate(loginSchema),
   login
 );
+
+router.post("/refresh", refresh);
 
 export default router;

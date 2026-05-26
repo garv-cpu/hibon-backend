@@ -4,6 +4,10 @@ import mongoose, {
 
 const promptSchema = new Schema(
     {
+        title: {
+            type: String,
+            required: true
+        },
         text: {
             type: String,
             required: true
@@ -17,7 +21,15 @@ const promptSchema = new Schema(
         festival: {
             type: String,
             default: null
-        }
+        },
+
+        weekday: {
+            type: Number,
+            required: true,
+            min: 0,
+            max: 6,
+            unique: true
+        },
     },
     {
         timestamps: true

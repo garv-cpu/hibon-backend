@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const sendFriendRequestSchema =
     z.object({
-        recipientId: z.string()
+        username: z.string().min(1)
     });
 
 export const respondFriendRequestSchema =

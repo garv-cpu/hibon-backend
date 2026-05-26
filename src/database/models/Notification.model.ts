@@ -1,57 +1,50 @@
-import mongoose, {
-    Schema
-} from "mongoose";
+// modules/notifications/notification.model.js
+
+import mongoose from "mongoose";
 
 const notificationSchema =
-    new Schema(
-        {
-            recipient: {
-                type: Schema.Types.ObjectId,
-                ref: "User",
-                required: true
-            },
+  new mongoose.Schema(
+    {
+      recipient: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+      },
 
-            sender: {
-                type: Schema.Types.ObjectId,
-                ref: "User",
-                default: null
-            },
+      sender: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+      },
 
-            type: {
-                type: String,
-                enum: [
-                    "friend_request",
-                    "friend_accept",
-                    "reaction",
-                    "streak_reminder"
-                ],
+      type: {
+        type: String,
+        enum: [
+          "reaction",
+          "friend_request",
+          "friend_accept",
+          "streak",
+          "reel"
+        ],
+        required: true
+      },
 
-                required: true
-            },
+      title: String,
 
-            title: {
-                type: String,
-                required: true
-            },
+      body: String,
 
-            message: {
-                type: String,
-                required: true
-            },
+      read: {
+        type: Boolean,
+        default: false
+      },
 
-            read: {
-                type: Boolean,
-                default: false
-            }
-        },
-        {
-            timestamps: true
-        }
-    );
+      entityId: mongoose.Schema.Types.ObjectId
+    },
+    {
+      timestamps: true
+    }
+  );
 
-export const Notification =
-    mongoose.models.Notification ||
-    mongoose.model(
-        "Notification",
-        notificationSchema
-    );
+export default mongoose.model(
+  "Notification",
+  notificationSchema
+);

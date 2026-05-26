@@ -10,5 +10,7 @@ export const createMomentSchema =
         emoji: z
             .string()
             .min(1)
-            .max(10)
+            .max(10),
+        prompt: z.string().optional(),
+        promptTitle: z.string().optional(),
     });

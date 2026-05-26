@@ -61,7 +61,8 @@ export const protect = (
       env.JWT_ACCESS_SECRET
     ) as JwtPayload;
 
-    req.userId = decoded.userId;
+    req.userId =
+      decoded.userId;
 
     next();
   } catch (error) {
