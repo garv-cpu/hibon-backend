@@ -91,9 +91,6 @@ export const privacySchema =
         "private"
       ])
       .optional(),
-    showStreakOnProfile: z
-      .boolean()
-      .optional(),
     showInSearch: z
       .boolean()
       .optional(),

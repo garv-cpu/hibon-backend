@@ -39,7 +39,6 @@ interface PreferencesInput {
 
 interface PrivacyInput {
   profileVisibility?: "friends" | "private";
-  showStreakOnProfile?: boolean;
   showInSearch?: boolean;
   allowFriendRequests?: boolean;
 }
@@ -62,7 +61,6 @@ const defaultPreferences = {
 
 const defaultPrivacy = {
   profileVisibility: "friends",
-  showStreakOnProfile: true,
   showInSearch: true,
   allowFriendRequests: true
 };

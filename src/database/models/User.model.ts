@@ -171,10 +171,6 @@ const userSchema = new Schema(
                 ],
                 default: "friends"
             },
-            showStreakOnProfile: {
-                type: Boolean,
-                default: true
-            },
             showInSearch: {
                 type: Boolean,
                 default: true
