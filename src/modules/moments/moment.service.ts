@@ -1,6 +1,8 @@
 import { Friendship } from "../../database/models/Friendship.model.js";
 
 import { Moment } from "../../database/models/Moment.model.js";
+import { Reaction } from "../../database/models/Reaction.model.js";
+import { Comment } from "../../database/models/Comment.model.js";
 
 import { User } from "../../database/models/User.model.js";
 
@@ -123,7 +125,8 @@ export class MomentService {
         }
       );
 
-    return await Moment.find({
+    const moments =
+      await Moment.find({
       user: {
         $in: [
           ...friendIds,
@@ -141,5 +144,55 @@ export class MomentService {
       })
 
       .limit(50);
+
+    const momentIds =
+      moments.map((moment) => moment._id);
+
+    const [reactions, comments] =
+      await Promise.all([
+        Reaction.find({
+          moment: {
+            $in: momentIds
+          }
+        })
+          .populate(
+            "user",
+            "username name avatarEmoji"
+          )
+          .lean(),
+
+        Comment.find({
+          moment: {
+            $in: momentIds
+          }
+        })
+          .populate(
+            "user",
+            "username name avatarEmoji"
+          )
+          .sort({
+            createdAt: 1
+          })
+          .lean()
+      ]);
+
+    return moments.map((moment) => {
+      const momentId =
+        moment._id.toString();
+
+      return {
+        ...moment.toObject(),
+        reactions: reactions.filter(
+          (reaction) =>
+            reaction.moment.toString() ===
+            momentId
+        ),
+        comments: comments.filter(
+          (comment) =>
+            comment.moment.toString() ===
+            momentId
+        )
+      };
+    });
   }
 }

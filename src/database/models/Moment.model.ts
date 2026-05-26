@@ -1,55 +1,70 @@
 import mongoose, {
-    Schema,
-    InferSchemaType
+  Schema,
+  InferSchemaType
 } from "mongoose";
 
 const momentSchema = new Schema(
-    {
-        user: {
-            type: Schema.Types.ObjectId,
-            ref: "User",
-            required: true
-        },
-
-        text: {
-            type: String,
-            required: true,
-            maxlength: 300
-        },
-
-        emoji: {
-            type: String,
-            required: true
-        },
-
-        prompt: {
-            type: Schema.Types.ObjectId,
-            ref: "Prompt",
-            default: null
-        },
-
-        visibility: {
-            type: String,
-            enum: ["friends"],
-            default: "friends"
-        },
-
-        reactionsCount: {
-            type: Number,
-            default: 0
-        }
+  {
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true
     },
-    {
-        timestamps: true
+
+    text: {
+      type: String,
+      required: true,
+      maxlength: 300
+    },
+
+    emoji: {
+      type: String,
+      required: true
+    },
+
+    prompt: {
+      type: Schema.Types.ObjectId,
+      ref: "Prompt",
+      default: null
+    },
+
+    promptText: {
+      type: String,
+      default: null
+    },
+
+    promptTitle: {
+      type: String,
+      default: null
+    },
+
+    visibility: {
+      type: String,
+      enum: ["friends"],
+      default: "friends"
+    },
+
+    reactionsCount: {
+      type: Number,
+      default: 0
+    },
+
+    commentsCount: {
+      type: Number,
+      default: 0
     }
+  },
+  {
+    timestamps: true
+  }
 );
 
 export type MomentDocument =
-    InferSchemaType<typeof momentSchema>;
+  InferSchemaType<typeof momentSchema>;
 
 export const Moment =
-    mongoose.models.Moment ||
-    mongoose.model(
-        "Moment",
-        momentSchema
-    );
+  mongoose.models.Moment ||
+  mongoose.model(
+    "Moment",
+    momentSchema
+  );

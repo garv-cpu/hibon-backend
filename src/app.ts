@@ -19,6 +19,7 @@ import contactsRoutes from "./modules/contacts/contacts.routes.js";
 import promptRoutes from "./modules/prompts/prompt.routes.js";
 import userRoutes from "./modules/users/user.routes.js";
 import reelRoutes from "./modules/reels/reel.routes.js";
+import commentRoutes from "./modules/comments/comment.routes.js";
 
 const app = express();
 
@@ -87,6 +88,11 @@ app.use(
 app.use(
   "/api/v1/reels",
   reelRoutes
+);
+
+app.use(
+  "/api/v1/comments",
+  commentRoutes
 );
 
 app.use(notFoundMiddleware);

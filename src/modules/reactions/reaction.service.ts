@@ -24,6 +24,15 @@ export class ReactionService {
       );
     }
 
+    if (
+      moment.user.toString() === userId
+    ) {
+      throw new ApiError(
+        400,
+        "You cannot react to your own moment"
+      );
+    }
+
     const existingReaction =
       await Reaction.findOne({
         user: userId,
