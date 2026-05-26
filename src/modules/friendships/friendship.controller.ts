@@ -71,54 +71,59 @@ export const sendFriendRequest =
             await User.findById(req.userId)
                 .select("username avatar avatarEmoji");
 
-        await NotificationService.createNotification({
-            recipient: recipient._id.toString(),
-            sender: req.userId!,
-            type: "friend_request",
-            title: "New friend request",
-            message: `${currentUser?.username} sent you a friend request`,
-            entityId: friendship._id.toString()
-        });
+        const wantsFriendRequestAlerts =
+            recipient.notificationPreferences?.friendRequests !== false;
 
-        const recipientSocket =
-            onlineUsers.get(
-                recipient._id.toString()
-            );
+        if (wantsFriendRequestAlerts) {
+            await NotificationService.createNotification({
+                recipient: recipient._id.toString(),
+                sender: req.userId!,
+                type: "friend_request",
+                title: "New friend request",
+                message: `${currentUser?.username} sent you a friend request`,
+                entityId: friendship._id.toString()
+            });
 
-        if (recipientSocket) {
-            getIO()
-                .to(recipientSocket)
-                .emit(
-                    "friend_request_received",
-                    {
-                        requesterId: req.userId,
-                        requesterUsername:
-                            currentUser?.username,
-                        requesterAvatarEmoji:
-                            currentUser?.avatarEmoji ||
-                            "🌸",
-                        requesterAvatar:
-                            currentUser?.avatar ||
-                            "",
+            const recipientSocket =
+                onlineUsers.get(
+                    recipient._id.toString()
+                );
+
+            if (recipientSocket) {
+                getIO()
+                    .to(recipientSocket)
+                    .emit(
+                        "friend_request_received",
+                        {
+                            requesterId: req.userId,
+                            requesterUsername:
+                                currentUser?.username,
+                            requesterAvatarEmoji:
+                                currentUser?.avatarEmoji ||
+                                "🌸",
+                            requesterAvatar:
+                                currentUser?.avatar ||
+                                "",
+                            requestId:
+                                friendship._id.toString()
+                        }
+                    );
+            }
+
+            await sendPushToUser(
+                recipient._id.toString(),
+                {
+                    title:
+                        "New friend request 👋",
+                    body: `@${currentUser?.username} wants to join your circle`,
+                    data: {
+                        type: "friend_request",
                         requestId:
                             friendship._id.toString()
                     }
-                );
-        }
-
-        await sendPushToUser(
-            recipient._id.toString(),
-            {
-                title:
-                    "New friend request 👋",
-                body: `@${currentUser?.username} wants to join your circle`,
-                data: {
-                    type: "friend_request",
-                    requestId:
-                        friendship._id.toString()
                 }
-            }
-        );
+            );
+        }
 
         res.status(201).json({
             success: true,
@@ -151,13 +156,19 @@ export const respondFriendRequest =
 
                 const requesterId =
                     friendship.requester.toString();
+                const requester =
+                    await User.findById(requesterId)
+                        .select("notificationPreferences")
+                        .lean();
+                const wantsAcceptedAlerts =
+                    requester?.notificationPreferences?.friendRequests !== false;
 
                 const requesterSocket =
                     onlineUsers.get(
                         requesterId
                     );
 
-                if (requesterSocket) {
+                if (requesterSocket && wantsAcceptedAlerts) {
                     getIO()
                         .to(requesterSocket)
                         .emit(
@@ -175,17 +186,19 @@ export const respondFriendRequest =
                         );
                 }
 
-                await sendPushToUser(
-                    requesterId,
-                    {
-                        title:
-                            "Request accepted 🎉",
-                        body: `@${acceptor?.username} added you to their circle`,
-                        data: {
-                            type: "friend_accept"
+                if (wantsAcceptedAlerts) {
+                    await sendPushToUser(
+                        requesterId,
+                        {
+                            title:
+                                "Request accepted 🎉",
+                            body: `@${acceptor?.username} added you to their circle`,
+                            data: {
+                                type: "friend_accept"
+                            }
                         }
-                    }
-                );
+                    );
+                }
             }
 
             // REMOVE NOTIFICATION

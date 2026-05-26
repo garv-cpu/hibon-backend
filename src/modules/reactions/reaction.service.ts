@@ -78,23 +78,31 @@ export class ReactionService {
           "username avatar avatarEmoji"
         );
 
-      await NotificationService.createNotification({
-        recipient:
-          moment.user.toString(),
-
-        sender: userId,
-
-        type: "reaction",
-
-        title: "New reaction",
-
-        message: `reacted ${emoji} to your moment`,
-
-        entityId: moment._id.toString()
-      });
-
       const ownerId =
         moment.user.toString();
+      const owner =
+        await User.findById(ownerId)
+          .select("notificationPreferences")
+          .lean();
+      const wantsReactionAlerts =
+        owner?.notificationPreferences?.reactions !== false;
+
+      if (wantsReactionAlerts) {
+        await NotificationService.createNotification({
+          recipient:
+            moment.user.toString(),
+
+          sender: userId,
+
+          type: "reaction",
+
+          title: "New reaction",
+
+          message: `reacted ${emoji} to your moment`,
+
+          entityId: moment._id.toString()
+        });
+      }
 
       const ownerSocket =
         onlineUsers.get(ownerId);
@@ -112,7 +120,7 @@ export class ReactionService {
           moment.text.slice(0, 90)
       };
 
-      if (ownerSocket) {
+      if (ownerSocket && wantsReactionAlerts) {
         getIO()
           .to(ownerSocket)
           .emit(
@@ -121,17 +129,19 @@ export class ReactionService {
           );
       }
 
-      await sendPushToUser(
-        ownerId,
-        {
-          title: `Someone reacted ${emoji}`,
-          body: `@${reactor?.username} reacted to your moment`,
-          data: {
-            type: "reaction",
-            momentId
+      if (wantsReactionAlerts) {
+        await sendPushToUser(
+          ownerId,
+          {
+            title: `Someone reacted ${emoji}`,
+            body: `@${reactor?.username} reacted to your moment`,
+            data: {
+              type: "reaction",
+              momentId
+            }
           }
-        }
-      );
+        );
+      }
     }
 
     const io = getIO();

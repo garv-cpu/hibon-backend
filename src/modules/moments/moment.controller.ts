@@ -59,12 +59,29 @@ export const createMoment =
           ]
         }).lean();
 
-      friendships.forEach((friendship) => {
-        const friendId =
+      const friendIds =
+        friendships.map((friendship) =>
           friendship.requester.toString() ===
           req.userId
             ? friendship.recipient.toString()
-            : friendship.requester.toString();
+            : friendship.requester.toString()
+        );
+
+      const friends =
+        await User.find({
+          _id: {
+            $in: friendIds
+          },
+          "notificationPreferences.momentPosted": {
+            $ne: false
+          }
+        })
+          .select("_id")
+          .lean();
+
+      friends.forEach((friend) => {
+        const friendId =
+          friend._id.toString();
 
         const socketId =
           onlineUsers.get(friendId);
