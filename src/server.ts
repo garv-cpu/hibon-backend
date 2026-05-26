@@ -1,18 +1,30 @@
-import http from "http";
+import http from "node:http";
+import { webcrypto } from "node:crypto";
 
-import app from "./app.js";
-
-import { env } from "./config/env.js";
-
-import { connectDB } from "./config/db.js";
-
-import logger from "./config/logger.js";
-
-import { initSocket } from "./sockets/socket.server.js";
-
-import { cleanupExpiredMoments } from "./modules/moments/moment.expiry.js";
+if (!globalThis.crypto) {
+  Object.defineProperty(globalThis, "crypto", {
+    value: webcrypto,
+    configurable: true
+  });
+}
 
 const startServer = async () => {
+  const [
+    { default: app },
+    { env },
+    { connectDB },
+    { default: logger },
+    { initSocket },
+    { cleanupExpiredMoments }
+  ] = await Promise.all([
+    import("./app.js"),
+    import("./config/env.js"),
+    import("./config/db.js"),
+    import("./config/logger.js"),
+    import("./sockets/socket.server.js"),
+    import("./modules/moments/moment.expiry.js")
+  ]);
+
   await connectDB();
 
   await cleanupExpiredMoments();
@@ -64,6 +76,6 @@ const startServer = async () => {
 };
 
 startServer().catch((error) => {
-  logger.error(error, "Failed to start server");
+  console.error(error);
   process.exit(1);
 });

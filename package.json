@@ -14,7 +14,7 @@
     "node": ">=20.19.0"
   },
   "scripts": {
-    "start": "node dist/bootstrap.js",
+    "start": "node --experimental-global-webcrypto dist/server.js",
     "dev": "nodemon --exec tsx src/bootstrap.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
