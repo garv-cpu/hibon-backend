@@ -131,11 +131,11 @@ const userSchema = new Schema(
                 type: {
                     type: String,
                     enum: ["Point"],
-                    default: "Point"
+                    required: true
                 },
                 coordinates: {
                     type: [Number],
-                    default: undefined
+                    required: true
                 }
             },
             updatedAt: {
