@@ -7,6 +7,7 @@ import { protect } from "../auth/auth.middleware.js";
 import {
     clearNotifications,
     getNotifications,
+    getUnreadCount,
     markAllAsRead,
     markAsRead,
     savePushToken
@@ -18,6 +19,12 @@ router.get(
     "/",
     protect,
     getNotifications
+);
+
+router.get(
+    "/unread-count",
+    protect,
+    getUnreadCount
 );
 
 router.patch(
