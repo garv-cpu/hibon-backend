@@ -46,6 +46,19 @@ export const markAllAsRead = async (
   });
 };
 
+export const clearNotifications = async (
+  req: Request,
+  res: Response
+) => {
+  await Notification.deleteMany({
+    recipient: req.userId
+  });
+
+  res.json({
+    success: true
+  });
+};
+
 export const markAsRead = async (
   req: Request,
   res: Response

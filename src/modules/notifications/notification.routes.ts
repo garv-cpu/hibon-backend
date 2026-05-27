@@ -5,6 +5,7 @@ import express from "express";
 import { protect } from "../auth/auth.middleware.js";
 
 import {
+    clearNotifications,
     getNotifications,
     markAllAsRead,
     markAsRead,
@@ -23,6 +24,12 @@ router.patch(
     "/read-all",
     protect,
     markAllAsRead
+);
+
+router.delete(
+    "/",
+    protect,
+    clearNotifications
 );
 
 router.patch(
