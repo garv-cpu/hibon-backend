@@ -22,6 +22,7 @@ const notificationSchema =
           "reaction",
           "friend_request",
           "friend_accept",
+          "friend_reject",
           "comment",
           "nudge",
           "moment",

@@ -163,6 +163,17 @@ export const respondFriendRequest =
                 const wantsAcceptedAlerts =
                     requester?.notificationPreferences?.friendRequests !== false;
 
+                if (wantsAcceptedAlerts) {
+                    await NotificationService.createNotification({
+                        recipient: requesterId,
+                        sender: req.userId!,
+                        type: "friend_accept",
+                        title: "Request accepted",
+                        message: `@${acceptor?.username} accepted your friend request`,
+                        entityId: friendship._id.toString()
+                    });
+                }
+
                 const requesterSocket =
                     onlineUsers.get(
                         requesterId
@@ -195,6 +206,72 @@ export const respondFriendRequest =
                             body: `@${acceptor?.username} added you to their circle`,
                             data: {
                                 type: "friend_accept"
+                            }
+                        }
+                    );
+                }
+            }
+
+            if (req.body.action === "rejected") {
+                const rejector =
+                    await User.findById(
+                        req.userId
+                    ).select(
+                        "username avatar avatarEmoji"
+                    );
+
+                const requesterId =
+                    friendship.requester.toString();
+                const requester =
+                    await User.findById(requesterId)
+                        .select("notificationPreferences")
+                        .lean();
+                const wantsRejectedAlerts =
+                    requester?.notificationPreferences?.friendRequests !== false;
+
+                if (wantsRejectedAlerts) {
+                    await NotificationService.createNotification({
+                        recipient: requesterId,
+                        sender: req.userId!,
+                        type: "friend_reject",
+                        title: "Request declined",
+                        message: `@${rejector?.username} declined your friend request`,
+                        entityId: friendship._id.toString()
+                    });
+                }
+
+                const requesterSocket =
+                    onlineUsers.get(
+                        requesterId
+                    );
+
+                if (requesterSocket && wantsRejectedAlerts) {
+                    getIO()
+                        .to(requesterSocket)
+                        .emit(
+                            "friend_request_rejected",
+                            {
+                                rejectorUsername:
+                                    rejector?.username,
+                                rejectorAvatarEmoji:
+                                    rejector?.avatarEmoji ||
+                                    "ðŸŒ¸",
+                                rejectorAvatar:
+                                    rejector?.avatar ||
+                                    ""
+                            }
+                        );
+                }
+
+                if (wantsRejectedAlerts) {
+                    await sendPushToUser(
+                        requesterId,
+                        {
+                            title:
+                                "Request declined",
+                            body: `@${rejector?.username} declined your friend request`,
+                            data: {
+                                type: "friend_reject"
                             }
                         }
                     );
