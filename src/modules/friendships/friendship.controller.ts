@@ -257,3 +257,98 @@ export const getPendingRequests =
             );
         }
     );
+
+export const nudgeFriend =
+    asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        ) => {
+            const targetUserId =
+                String(req.body.userId || "");
+
+            if (!targetUserId) {
+                res.status(400).json({
+                    success: false,
+                    message: "Friend is required"
+                });
+                return;
+            }
+
+            const areFriends =
+                await FriendshipService.areFriends(
+                    req.userId!,
+                    targetUserId
+                );
+
+            if (!areFriends) {
+                res.status(403).json({
+                    success: false,
+                    message: "You can only nudge friends"
+                });
+                return;
+            }
+
+            const [sender, recipient] =
+                await Promise.all([
+                    User.findById(req.userId)
+                        .select("username avatar avatarEmoji")
+                        .lean(),
+                    User.findById(targetUserId)
+                        .select("notificationPreferences")
+                        .lean()
+                ]);
+
+            await NotificationService.createNotification({
+                recipient: targetUserId,
+                sender: req.userId!,
+                type: "nudge",
+                title: "Gentle nudge",
+                message: `@${sender?.username} nudged you to share today's moment`
+            });
+
+            const socketId =
+                onlineUsers.get(targetUserId);
+
+            if (socketId) {
+                getIO()
+                    .to(socketId)
+                    .emit(
+                        "nudge_received",
+                        {
+                            senderId: req.userId,
+                            senderUsername:
+                                sender?.username,
+                            senderAvatarEmoji:
+                                sender?.avatarEmoji ||
+                                "🌸",
+                            senderAvatar:
+                                sender?.avatar || ""
+                        }
+                    );
+            }
+
+            if (
+                recipient?.notificationPreferences
+                    ?.streakReminders !== false
+            ) {
+                await sendPushToUser(
+                    targetUserId,
+                    {
+                        title: "A friend nudged you",
+                        body: `@${sender?.username} wants to see your bon moment`,
+                        data: {
+                            type: "nudge"
+                        }
+                    }
+                );
+            }
+
+            res.status(201).json(
+                new ApiResponse(
+                    "Nudge sent",
+                    { sent: true }
+                )
+            );
+        }
+    );

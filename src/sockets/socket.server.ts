@@ -92,6 +92,70 @@ export const initSocket = (
         );
 
         socket.on(
+            "comment:join",
+            (momentId: string) => {
+                if (momentId) {
+                    socket.join(
+                        `moment:${momentId}`
+                    );
+                }
+            }
+        );
+
+        socket.on(
+            "comment:leave",
+            (momentId: string) => {
+                if (momentId) {
+                    socket.leave(
+                        `moment:${momentId}`
+                    );
+                }
+            }
+        );
+
+        socket.on(
+            "comment:typing:start",
+            (payload: { momentId?: string; username?: string }) => {
+                if (!payload?.momentId) return;
+
+                socket
+                    .to(`moment:${payload.momentId}`)
+                    .emit(
+                        "comment:typing",
+                        {
+                            momentId: payload.momentId,
+                            userId,
+                            username:
+                                payload.username ||
+                                "Someone",
+                            isTyping: true
+                        }
+                    );
+            }
+        );
+
+        socket.on(
+            "comment:typing:stop",
+            (payload: { momentId?: string; username?: string }) => {
+                if (!payload?.momentId) return;
+
+                socket
+                    .to(`moment:${payload.momentId}`)
+                    .emit(
+                        "comment:typing",
+                        {
+                            momentId: payload.momentId,
+                            userId,
+                            username:
+                                payload.username ||
+                                "Someone",
+                            isTyping: false
+                        }
+                    );
+            }
+        );
+
+        socket.on(
             "disconnect",
             async () => {
                 if (

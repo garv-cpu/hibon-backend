@@ -8,6 +8,9 @@ type NotificationType =
   | "reaction"
   | "friend_request"
   | "friend_accept"
+  | "comment"
+  | "nudge"
+  | "moment"
   | "streak"
   | "reel";
 

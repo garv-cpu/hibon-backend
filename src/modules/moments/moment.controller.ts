@@ -9,6 +9,8 @@ import { Friendship } from "../../database/models/Friendship.model.js";
 import { User } from "../../database/models/User.model.js";
 import { getIO } from "../../sockets/socket.server.js";
 import { onlineUsers } from "../../sockets/onlineUsers.js";
+import { NotificationService } from "../notifications/notification.service.js";
+import { sendPushToUser } from "../../lib/pushNotifications.js";
 import {
   cleanupExpiredMoments,
   getMomentExpiryCutoff
@@ -79,9 +81,19 @@ export const createMoment =
           .select("_id")
           .lean();
 
-      friends.forEach((friend) => {
+      await Promise.all(
+        friends.map(async (friend) => {
         const friendId =
           friend._id.toString();
+
+        await NotificationService.createNotification({
+          recipient: friendId,
+          sender: req.userId!,
+          type: "moment",
+          title: "New circle moment",
+          message: `@${user?.username} shared a new bon moment`,
+          entityId: moment._id.toString()
+        });
 
         const socketId =
           onlineUsers.get(friendId);
@@ -106,7 +118,20 @@ export const createMoment =
               }
             );
         }
-      });
+
+        await sendPushToUser(
+          friendId,
+          {
+            title: "New circle moment",
+            body: `@${user?.username} shared: ${moment.text.slice(0, 80)}`,
+            data: {
+              type: "moment",
+              momentId: moment._id.toString()
+            }
+          }
+        );
+      })
+      );
 
       res.status(201).json(
         new ApiResponse(

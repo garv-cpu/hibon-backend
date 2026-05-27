@@ -11,6 +11,30 @@ import { onlineUsers } from "../../sockets/onlineUsers.js";
 import { isSameDay } from "../moments/helpers/date.helper.js";
 
 export class FriendshipService {
+  static async areFriends(
+    userId: string,
+    friendId: string
+  ) {
+    const friendship =
+      await Friendship.findOne({
+        status: "accepted",
+        $or: [
+          {
+            requester: userId,
+            recipient: friendId
+          },
+          {
+            requester: friendId,
+            recipient: userId
+          }
+        ]
+      })
+        .select("_id")
+        .lean();
+
+    return Boolean(friendship);
+  }
+
   static async sendRequest(
     requesterId: string,
     recipientId: string
