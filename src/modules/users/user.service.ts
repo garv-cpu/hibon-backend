@@ -445,4 +445,108 @@ export class UserService {
       message: "Account deleted"
     };
   }
+
+  static async getPublicProfile(
+    viewerId: string,
+    username: string
+  ) {
+    await cleanupExpiredMoments();
+
+    const user =
+      await User.findOne({
+        username: username.toLowerCase()
+      })
+        .select(
+          "username name bio avatar avatarEmoji currentStreak longestStreak friendsCount privacy"
+        )
+        .lean();
+
+    if (!user) {
+      throw new ApiError(
+        404,
+        "User not found"
+      );
+    }
+
+    const targetId =
+      user._id.toString();
+
+    const friendship =
+      await Friendship.findOne({
+        $or: [
+          {
+            requester: viewerId,
+            recipient: targetId
+          },
+          {
+            requester: targetId,
+            recipient: viewerId
+          }
+        ]
+      })
+        .select("requester recipient status")
+        .lean();
+
+    const isFriend =
+      friendship?.status === "accepted";
+    const hasPendingRequest =
+      friendship?.status === "pending" &&
+      friendship.requester.toString() === viewerId;
+    const hasIncomingRequest =
+      friendship?.status === "pending" &&
+      friendship.recipient.toString() === viewerId;
+    const canSeeMoments =
+      isFriend ||
+      targetId === viewerId ||
+      user.privacy?.profileVisibility !== "private";
+
+    const totalMoments =
+      await Moment.countDocuments({
+        user: targetId,
+        createdAt: {
+          $gte: getMomentExpiryCutoff()
+        }
+      });
+
+    const recentMoments =
+      canSeeMoments
+        ? await Moment.find({
+            user: targetId,
+            createdAt: {
+              $gte: getMomentExpiryCutoff()
+            }
+          })
+            .sort({
+              createdAt: -1
+            })
+            .limit(5)
+            .lean()
+        : [];
+
+    return {
+      _id: targetId,
+      username: user.username,
+      name: user.name || user.username,
+      bio: user.bio || "",
+      avatar: user.avatar || "",
+      avatarEmoji:
+        user.avatarEmoji || "ðŸŒ¸",
+      currentStreak:
+        user.currentStreak ?? 0,
+      bestStreak:
+        user.longestStreak ?? 0,
+      totalMoments,
+      isFriend,
+      hasPendingRequest,
+      hasIncomingRequest,
+      friendsCount:
+        user.friendsCount ?? 0,
+      isPrivate:
+        user.privacy?.profileVisibility ===
+          "private" && !isFriend,
+      friendshipId:
+        friendship?._id?.toString?.() || "",
+      recentMoments
+    };
+  }
 }

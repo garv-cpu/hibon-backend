@@ -9,6 +9,7 @@ import {
   getMe,
   getNotificationPreferences,
   getPreferences,
+  getPublicProfile,
   getPrivacy,
   joinPlusWaitlist,
   unblockUser,
@@ -106,6 +107,12 @@ router.delete(
   "/me",
   protect,
   deleteMe
+);
+
+router.get(
+  "/:username",
+  protect,
+  getPublicProfile
 );
 
 export default router;

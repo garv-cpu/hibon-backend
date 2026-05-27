@@ -210,3 +210,19 @@ export const deleteMe =
 
     res.json(result);
   });
+
+export const getPublicProfile =
+  asyncHandler(async (req, res) => {
+    const profile =
+      await UserService.getPublicProfile(
+        req.userId!,
+        String(req.params.username)
+      );
+
+    res.json(
+      new ApiResponse(
+        "Public profile fetched",
+        profile
+      )
+    );
+  });
