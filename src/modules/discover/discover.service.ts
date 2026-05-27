@@ -352,17 +352,6 @@ export class DiscoverService {
           .lean<DiscoverUserDoc[]>();
     }
 
-    if (users.length === 0) {
-      users =
-        await User.find(baseMatch)
-          .select("username name bio avatar avatarEmoji discoverLocation privacy")
-          .sort({
-            createdAt: -1
-          })
-          .limit(limit)
-          .lean<DiscoverUserDoc[]>();
-    }
-
     return {
       users: await this.shapeUsers(
         viewerId,
