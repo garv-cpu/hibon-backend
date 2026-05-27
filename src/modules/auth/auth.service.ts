@@ -25,17 +25,25 @@ interface LoginInput {
 
 export class AuthService {
     static async register(data: RegisterInput) {
-        const existingUser = await User.findOne({
-            $or: [
-                { email: data.email },
-                { username: data.username }
-            ]
+        const existingEmail = await User.findOne({
+            email: data.email
         });
 
-        if (existingUser) {
+        if (existingEmail) {
             throw new ApiError(
                 409,
-                "User already exists"
+                "Email is already registered"
+            );
+        }
+
+        const existingUsername = await User.findOne({
+            username: data.username
+        });
+
+        if (existingUsername) {
+            throw new ApiError(
+                409,
+                "Username is already taken"
             );
         }
 

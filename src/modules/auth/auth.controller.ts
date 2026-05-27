@@ -50,6 +50,44 @@ export const register = asyncHandler(
   }
 );
 
+export const checkUsername = asyncHandler(
+  async (req: Request, res: Response) => {
+    const username =
+      String(req.query.username || "")
+        .trim()
+        .toLowerCase();
+
+    if (
+      username.length < 3 ||
+      !/^[a-z0-9_]+$/.test(username)
+    ) {
+      res.status(200).json(
+        new ApiResponse(
+          "Username checked",
+          {
+            available: false
+          }
+        )
+      );
+      return;
+    }
+
+    const existing =
+      await User.exists({
+        username
+      });
+
+    res.status(200).json(
+      new ApiResponse(
+        "Username checked",
+        {
+          available: !existing
+        }
+      )
+    );
+  }
+);
+
 export const login = asyncHandler(
   async (req: Request, res: Response) => {
     const result =

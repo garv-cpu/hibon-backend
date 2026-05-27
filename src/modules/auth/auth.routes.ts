@@ -3,7 +3,8 @@ import { Router } from "express";
 import {
   register,
   login,
-  refresh
+  refresh,
+  checkUsername
 } from "./auth.controller.js";
 
 import {
@@ -25,6 +26,11 @@ router.post(
   "/login",
   validate(loginSchema),
   login
+);
+
+router.get(
+  "/check-username",
+  checkUsername
 );
 
 router.post("/refresh", refresh);
