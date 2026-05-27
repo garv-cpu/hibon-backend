@@ -50,6 +50,13 @@ export class MomentService {
           )
       );
 
+    if (alreadyPostedToday) {
+      throw new ApiError(
+        409,
+        "Today's bon moment is already saved"
+      );
+    }
+
     const activeMoments =
       await Moment.find({
         user: userId,
