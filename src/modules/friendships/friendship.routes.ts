@@ -14,6 +14,7 @@ import {
     respondFriendRequest,
     getFriends,
     getPendingRequests,
+    removeFriend,
     nudgeFriend
 } from "./friendship.controller.js";
 
@@ -47,6 +48,12 @@ router.get(
     "/list",
     protect,
     getFriends
+);
+
+router.delete(
+    "/:userId",
+    protect,
+    removeFriend
 );
 
 router.post(

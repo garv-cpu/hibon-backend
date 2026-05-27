@@ -335,6 +335,27 @@ export const getPendingRequests =
         }
     );
 
+export const removeFriend =
+    asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        ) => {
+            const result =
+                await FriendshipService.removeFriend(
+                    req.userId!,
+                    String(req.params.userId)
+                );
+
+            res.json(
+                new ApiResponse(
+                    "Friend removed",
+                    result
+                )
+            );
+        }
+    );
+
 export const nudgeFriend =
     asyncHandler(
         async (

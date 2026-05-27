@@ -319,6 +319,56 @@ export class FriendshipService {
     );
   }
 
+  static async removeFriend(
+    userId: string,
+    friendId: string
+  ) {
+    const friendship =
+      await Friendship.findOneAndDelete({
+        status: "accepted",
+        $or: [
+          {
+            requester: userId,
+            recipient: friendId
+          },
+          {
+            requester: friendId,
+            recipient: userId
+          }
+        ]
+      });
+
+    if (!friendship) {
+      throw new ApiError(
+        404,
+        "Friendship not found"
+      );
+    }
+
+    await User.updateMany(
+      {
+        _id: {
+          $in: [
+            friendship.requester,
+            friendship.recipient
+          ]
+        },
+        friendsCount: {
+          $gt: 0
+        }
+      },
+      {
+        $inc: {
+          friendsCount: -1
+        }
+      }
+    );
+
+    return {
+      removed: true
+    };
+  }
+
   static async getPendingRequests(
     userId: string
   ) {
