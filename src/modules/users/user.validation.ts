@@ -24,6 +24,10 @@ export const updateMeSchema =
     avatar: z
       .string()
       .max(4_000_000)
+      .optional(),
+
+    hasCompletedOnboarding: z
+      .boolean()
       .optional()
   });
 

@@ -80,6 +80,11 @@ const userSchema = new Schema(
             default: 0
         },
 
+        hasCompletedOnboarding: {
+            type: Boolean,
+            default: true
+        },
+
         refreshToken: {
             type: String,
             default: null,

@@ -29,7 +29,7 @@ export const register = asyncHandler(
           sameSite: "strict",
 
           maxAge:
-            7 * 24 * 60 * 60 * 1000
+            365 * 24 * 60 * 60 * 1000
         }
       )
 
@@ -41,7 +41,9 @@ export const register = asyncHandler(
           {
             user: result.user,
             accessToken:
-              result.accessToken
+              result.accessToken,
+            refreshToken:
+              result.refreshToken
           }
         )
       );
@@ -67,7 +69,7 @@ export const login = asyncHandler(
           sameSite: "strict",
 
           maxAge:
-            7 * 24 * 60 * 60 * 1000
+            365 * 24 * 60 * 60 * 1000
         }
       )
 
@@ -79,7 +81,9 @@ export const login = asyncHandler(
           {
             user: result.user,
             accessToken:
-              result.accessToken
+              result.accessToken,
+            refreshToken:
+              result.refreshToken
           }
         )
       );
@@ -87,7 +91,9 @@ export const login = asyncHandler(
 );
 
 export const refresh = async (req: Request, res: Response) => {
-  const token = req.cookies?.refreshToken;
+  const token =
+    req.body?.refreshToken ||
+    req.cookies?.refreshToken;
 
   if (!token) {
     throw new ApiError(401, "No refresh token");
@@ -99,7 +105,9 @@ export const refresh = async (req: Request, res: Response) => {
       env.JWT_REFRESH_SECRET
     ) as { userId: string };
 
-    const user = await User.findById(decoded.userId);
+    const user =
+      await User.findById(decoded.userId)
+        .select("+refreshToken");
 
     if (!user || user.refreshToken !== token) {
       throw new ApiError(401, "Invalid refresh token");

@@ -19,6 +19,7 @@ interface UpdateMeInput {
   bio?: string;
   avatarEmoji?: string;
   avatar?: string;
+  hasCompletedOnboarding?: boolean;
 }
 
 interface NotificationPreferencesInput {
@@ -103,7 +104,9 @@ const toProfileResponse = async (userId: string) => {
       user.longestStreak ?? 0,
     friendsCount:
       user.friendsCount ?? 0,
-    totalMoments
+    totalMoments,
+    hasCompletedOnboarding:
+      user.hasCompletedOnboarding ?? true
   };
 };
 
@@ -131,6 +134,10 @@ export class UserService {
           }),
           ...(data.avatar !== undefined && {
             avatar: data.avatar
+          }),
+          ...(data.hasCompletedOnboarding !== undefined && {
+            hasCompletedOnboarding:
+              data.hasCompletedOnboarding
           })
         }
       },

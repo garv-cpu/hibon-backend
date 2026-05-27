@@ -49,6 +49,8 @@ export class AuthService {
 
             password: hashedPassword,
 
+            hasCompletedOnboarding: false,
+
             ...(data.phoneNumber?.trim() && {
               phoneNumber: data.phoneNumber,
 
@@ -77,7 +79,9 @@ export class AuthService {
             avatarEmoji: user.avatarEmoji,
             bio: user.bio,
             currentStreak: user.currentStreak,
-            longestStreak: user.longestStreak
+            longestStreak: user.longestStreak,
+            hasCompletedOnboarding:
+                user.hasCompletedOnboarding
         };
 
         return {
@@ -131,7 +135,9 @@ export class AuthService {
             avatarEmoji: user.avatarEmoji,
             bio: user.bio,
             currentStreak: user.currentStreak,
-            longestStreak: user.longestStreak
+            longestStreak: user.longestStreak,
+            hasCompletedOnboarding:
+                user.hasCompletedOnboarding ?? true
         };
 
         return {

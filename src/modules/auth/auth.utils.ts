@@ -8,7 +8,7 @@ export const generateAccessToken = (
         { userId },
         env.JWT_ACCESS_SECRET,
         {
-            expiresIn: "15m"
+            expiresIn: "1h"
         }
     );
 };
@@ -20,7 +20,7 @@ export const generateRefreshToken = (
         { userId },
         env.JWT_REFRESH_SECRET,
         {
-            expiresIn: "7d"
+            expiresIn: "365d"
         }
     );
 };
@@ -40,5 +40,7 @@ export const serializeUser = (
         user.currentStreak,
 
     longestStreak:
-        user.longestStreak
+        user.longestStreak,
+    hasCompletedOnboarding:
+        user.hasCompletedOnboarding ?? true
 });
