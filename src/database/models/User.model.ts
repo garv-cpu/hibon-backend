@@ -130,12 +130,18 @@ const userSchema = new Schema(
             approximate: {
                 type: {
                     type: String,
-                    enum: ["Point"],
-                    required: true
+                    enum: ["Point"]
                 },
                 coordinates: {
                     type: [Number],
-                    required: true
+                    validate: {
+                        validator: (value: number[] | undefined) =>
+                            value === undefined ||
+                            value.length === 0 ||
+                            value.length === 2,
+                        message:
+                            "Coordinates must be [longitude, latitude]"
+                    }
                 }
             },
             updatedAt: {

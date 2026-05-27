@@ -185,23 +185,40 @@ export class DiscoverService {
         : undefined;
 
     await User.findByIdAndUpdate(viewerId, {
-      discoverLocation: {
-        city: input.city?.trim() || "",
-        region: input.region?.trim() || "",
-        country: input.country?.trim() || "",
-        approximate:
+      $set: {
+        "discoverLocation.city":
+          input.city?.trim() || "",
+        "discoverLocation.region":
+          input.region?.trim() || "",
+        "discoverLocation.country":
+          input.country?.trim() || "",
+        "discoverLocation.updatedAt":
+          new Date(),
+        ...(
           typeof longitude === "number" &&
           typeof latitude === "number"
             ? {
-                type: "Point",
-                coordinates: [
-                  longitude,
-                  latitude
-                ]
+                "discoverLocation.approximate": {
+                  type: "Point",
+                  coordinates: [
+                    longitude,
+                    latitude
+                  ]
+                }
               }
-            : undefined,
-        updatedAt: new Date()
-      }
+            : {}
+        )
+      },
+      ...(
+        typeof longitude === "number" &&
+        typeof latitude === "number"
+          ? {}
+          : {
+              $unset: {
+                "discoverLocation.approximate": ""
+              }
+            }
+      )
     });
 
     return {
