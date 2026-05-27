@@ -23,21 +23,6 @@ export const createMoment =
       res: Response
     ) => {
 
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-
-      const existingMoment = await Moment.findOne({
-        user: req.userId,
-        createdAt: { $gte: todayStart }
-      });
-
-      if (existingMoment) {
-        throw new ApiError(
-          400,
-          "You already logged today's moment"
-        );
-      }
-
       const moment =
         await MomentService.createMoment(
           req.userId!,

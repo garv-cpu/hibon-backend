@@ -60,8 +60,7 @@ const momentSchema = new Schema(
 );
 
 momentSchema.index(
-  { createdAt: 1 },
-  { expireAfterSeconds: 60 * 60 * 24 }
+  { createdAt: 1 }
 );
 
 export type MomentDocument =

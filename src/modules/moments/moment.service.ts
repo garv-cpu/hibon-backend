@@ -15,6 +15,7 @@ import { isSameDay } from "./helpers/date.helper.js";
 import { calculateStreak } from "./helpers/streak.helper.js";
 import {
   cleanupExpiredMoments,
+  deleteMomentsCascade,
   getMomentExpiryCutoff
 } from "./moment.expiry.js";
 
@@ -39,18 +40,31 @@ export class MomentService {
       );
     }
 
-    if (
-      user.lastMomentDate &&
-      isSameDay(
-        user.lastMomentDate,
-        new Date()
-      )
-    ) {
-      throw new ApiError(
-        400,
-        "You already posted today"
+    const now = new Date();
+    const alreadyPostedToday =
+      Boolean(
+        user.lastMomentDate &&
+          isSameDay(
+            user.lastMomentDate,
+            now
+          )
       );
-    }
+
+    const activeMoments =
+      await Moment.find({
+        user: userId,
+        createdAt: {
+          $gte: getMomentExpiryCutoff()
+        }
+      })
+        .select("_id")
+        .lean();
+
+    await deleteMomentsCascade(
+      activeMoments.map(
+        (moment) => moment._id
+      )
+    );
 
     let promptDoc = null;
 
@@ -79,10 +93,12 @@ export class MomentService {
       });
 
     const newStreak =
-      calculateStreak(
-        user.lastMomentDate,
-        user.currentStreak
-      );
+      alreadyPostedToday
+        ? user.currentStreak
+        : calculateStreak(
+            user.lastMomentDate,
+            user.currentStreak
+          );
 
     user.currentStreak = newStreak;
 
@@ -94,8 +110,7 @@ export class MomentService {
         newStreak;
     }
 
-    user.lastMomentDate =
-      new Date();
+    user.lastMomentDate = now;
 
     await user.save();
 
