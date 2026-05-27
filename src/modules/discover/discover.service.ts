@@ -167,10 +167,7 @@ export class DiscoverService {
       const privacy =
         users[index]?.privacy;
 
-      return (
-        privacy?.showInSearch !== false &&
-        privacy?.allowFriendRequests !== false
-      );
+      return privacy?.showInSearch !== false;
     });
   }
 
@@ -219,7 +216,7 @@ export class DiscoverService {
     cursor = 0
   ) {
     const term =
-      query.trim().toLowerCase();
+      query.trim().replace(/^@+/, "").toLowerCase();
 
     if (term.length < 2) {
       return {
