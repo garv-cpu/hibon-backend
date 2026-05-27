@@ -497,8 +497,7 @@ export class UserService {
       friendship.recipient.toString() === viewerId;
     const canSeeMoments =
       isFriend ||
-      targetId === viewerId ||
-      user.privacy?.profileVisibility !== "private";
+      targetId === viewerId;
 
     const totalMoments =
       await Moment.countDocuments({
@@ -534,13 +533,19 @@ export class UserService {
       currentStreak:
         user.currentStreak ?? 0,
       bestStreak:
-        user.longestStreak ?? 0,
-      totalMoments,
+        canSeeMoments
+          ? user.longestStreak ?? 0
+          : 0,
+      totalMoments: canSeeMoments
+        ? totalMoments
+        : 0,
       isFriend,
       hasPendingRequest,
       hasIncomingRequest,
       friendsCount:
-        user.friendsCount ?? 0,
+        canSeeMoments
+          ? user.friendsCount ?? 0
+          : 0,
       isPrivate:
         user.privacy?.profileVisibility ===
           "private" && !isFriend,

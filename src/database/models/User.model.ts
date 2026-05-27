@@ -111,6 +111,38 @@ const userSchema = new Schema(
             type: Date
         },
 
+        discoverLocation: {
+            city: {
+                type: String,
+                trim: true,
+                default: ""
+            },
+            region: {
+                type: String,
+                trim: true,
+                default: ""
+            },
+            country: {
+                type: String,
+                trim: true,
+                default: ""
+            },
+            approximate: {
+                type: {
+                    type: String,
+                    enum: ["Point"],
+                    default: "Point"
+                },
+                coordinates: {
+                    type: [Number],
+                    default: undefined
+                }
+            },
+            updatedAt: {
+                type: Date
+            }
+        },
+
         notificationPreferences: {
             friendRequests: {
                 type: Boolean,
@@ -197,6 +229,10 @@ const userSchema = new Schema(
         timestamps: true
     }
 );
+
+userSchema.index({
+    "discoverLocation.approximate": "2dsphere"
+});
 
 export type UserDocument = InferSchemaType<typeof userSchema>;
 
