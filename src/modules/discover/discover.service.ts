@@ -10,6 +10,10 @@ interface DiscoverUserDoc {
   bio?: string;
   avatar?: string;
   avatarEmoji?: string;
+  privacy?: {
+    showInSearch?: boolean;
+    allowFriendRequests?: boolean;
+  };
   discoverLocation?: {
     city?: string;
     region?: string;
@@ -118,7 +122,10 @@ export class DiscoverService {
 
   private static async shapeUsers(
     viewerId: string,
-    users: DiscoverUserDoc[]
+    users: DiscoverUserDoc[],
+    options?: {
+      respectDiscoverPrivacy?: boolean;
+    }
   ) {
     const ids =
       users.map((user) => user._id.toString());
@@ -148,6 +155,22 @@ export class DiscoverService {
           user.discoverLocation?.region
         )
       };
+    }).filter((user, index) => {
+      if (!options?.respectDiscoverPrivacy) {
+        return true;
+      }
+
+      if (user.friendshipStatus !== "none") {
+        return true;
+      }
+
+      const privacy =
+        users[index]?.privacy;
+
+      return (
+        privacy?.showInSearch !== false &&
+        privacy?.allowFriendRequests !== false
+      );
     });
   }
 
@@ -215,12 +238,6 @@ export class DiscoverService {
         _id: {
           $nin: Array.from(blocked)
         },
-        "privacy.showInSearch": {
-          $ne: false
-        },
-        "privacy.allowFriendRequests": {
-          $ne: false
-        },
         $or: [
           {
             username: regex
@@ -230,7 +247,7 @@ export class DiscoverService {
           }
         ]
       })
-        .select("username name bio avatar avatarEmoji discoverLocation")
+        .select("username name bio avatar avatarEmoji discoverLocation privacy")
         .sort({
           username: 1
         })
@@ -246,7 +263,13 @@ export class DiscoverService {
         : users;
 
     return {
-      users: await this.shapeUsers(viewerId, page),
+      users: await this.shapeUsers(
+        viewerId,
+        page,
+        {
+          respectDiscoverPrivacy: true
+        }
+      ),
       nextCursor: hasNext
         ? cursor + limit
         : null
@@ -266,12 +289,6 @@ export class DiscoverService {
           (id) => new Types.ObjectId(id)
         )
       },
-      "privacy.showInSearch": {
-        $ne: false
-      },
-      "privacy.allowFriendRequests": {
-        $ne: false
-      }
     };
 
     let users: DiscoverUserDoc[] = [];
@@ -304,6 +321,7 @@ export class DiscoverService {
               bio: 1,
               avatar: 1,
               avatarEmoji: 1,
+              privacy: 1,
               discoverLocation: 1,
               distanceMeters: 1
             }
@@ -314,7 +332,10 @@ export class DiscoverService {
         ]);
     }
 
-    if (users.length === 0) {
+    if (
+      users.length === 0 &&
+      (input.city || input.region)
+    ) {
       users =
         await User.find({
           ...baseMatch,
@@ -329,13 +350,30 @@ export class DiscoverService {
             }
           ]
         })
-          .select("username name bio avatar avatarEmoji discoverLocation")
+          .select("username name bio avatar avatarEmoji discoverLocation privacy")
+          .limit(limit)
+          .lean<DiscoverUserDoc[]>();
+    }
+
+    if (users.length === 0) {
+      users =
+        await User.find(baseMatch)
+          .select("username name bio avatar avatarEmoji discoverLocation privacy")
+          .sort({
+            createdAt: -1
+          })
           .limit(limit)
           .lean<DiscoverUserDoc[]>();
     }
 
     return {
-      users: await this.shapeUsers(viewerId, users)
+      users: await this.shapeUsers(
+        viewerId,
+        users,
+        {
+          respectDiscoverPrivacy: true
+        }
+      )
     };
   }
 }
