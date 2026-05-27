@@ -251,4 +251,84 @@ export class MomentService {
       };
     });
   }
+
+  static async getMomentById(
+    userId: string,
+    momentId: string
+  ) {
+    await cleanupExpiredMoments();
+
+    const moment =
+      await Moment.findOne({
+        _id: momentId,
+        createdAt: {
+          $gte: getMomentExpiryCutoff()
+        }
+      })
+        .populate(
+          "user",
+          "username name avatar avatarEmoji currentStreak"
+        )
+        .lean();
+
+    if (!moment) {
+      throw new ApiError(
+        404,
+        "Moment not found"
+      );
+    }
+
+    const ownerId =
+      (moment.user as any)?._id?.toString?.() ||
+      moment.user?.toString();
+
+    const isOwner = ownerId === userId;
+    const areFriends =
+      isOwner ||
+      Boolean(
+        await Friendship.findOne({
+          status: "accepted",
+          $or: [
+            {
+              requester: userId,
+              recipient: ownerId
+            },
+            {
+              requester: ownerId,
+              recipient: userId
+            }
+          ]
+        })
+          .select("_id")
+          .lean()
+      );
+
+    if (!areFriends) {
+      throw new ApiError(
+        403,
+        "Moment is private"
+      );
+    }
+
+    const reactions =
+      await Reaction.find({
+        moment: moment._id
+      })
+        .populate(
+          "user",
+          "username name avatar avatarEmoji"
+        )
+        .lean();
+
+    return {
+      ...moment,
+      reactions,
+      prompt: moment.promptText
+        ? {
+            text: moment.promptText
+          }
+        : null,
+      loggedDate: moment.createdAt
+    };
+  }
 }

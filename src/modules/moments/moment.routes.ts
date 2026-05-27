@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
     createMoment,
     getFeed,
+    getMomentById,
     getMyMoments
 } from "./moment.controller.js";
 
@@ -31,6 +32,12 @@ router.get(
     "/feed",
     protect,
     getFeed
+);
+
+router.get(
+    "/:id",
+    protect,
+    getMomentById
 );
 
 export default router;

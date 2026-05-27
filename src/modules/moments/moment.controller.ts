@@ -176,3 +176,24 @@ export const getMyMoments =
       );
     }
   );
+
+export const getMomentById =
+  asyncHandler(
+    async (
+      req: Request,
+      res: Response
+    ) => {
+      const moment =
+        await MomentService.getMomentById(
+          req.userId!,
+          String(req.params.id)
+        );
+
+      res.json(
+        new ApiResponse(
+          "Moment fetched",
+          moment
+        )
+      );
+    }
+  );
