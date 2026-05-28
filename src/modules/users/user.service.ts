@@ -87,6 +87,19 @@ const toProfileResponse = async (userId: string) => {
       }
     });
 
+  const friendsCount =
+    await Friendship.countDocuments({
+      status: "accepted",
+      $or: [
+        {
+          requester: userId
+        },
+        {
+          recipient: userId
+        }
+      ]
+    });
+
   return {
     _id: user._id.toString(),
     username: user.username,
@@ -102,8 +115,7 @@ const toProfileResponse = async (userId: string) => {
       user.longestStreak ?? 0,
     longestStreak:
       user.longestStreak ?? 0,
-    friendsCount:
-      user.friendsCount ?? 0,
+    friendsCount,
     totalMoments,
     hasCompletedOnboarding:
       user.hasCompletedOnboarding ?? true
