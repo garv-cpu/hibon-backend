@@ -41,12 +41,15 @@ export class MomentService {
     }
 
     const now = new Date();
+    const timezone =
+      user.timezone || "UTC";
     const alreadyPostedToday =
       Boolean(
         user.lastMomentDate &&
           isSameDay(
             user.lastMomentDate,
-            now
+            now,
+            timezone
           )
       );
 
@@ -104,7 +107,8 @@ export class MomentService {
         ? user.currentStreak
         : calculateStreak(
             user.lastMomentDate,
-            user.currentStreak
+            user.currentStreak,
+            timezone
           );
 
     user.currentStreak = newStreak;

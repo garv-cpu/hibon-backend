@@ -216,11 +216,11 @@ export class FriendshipService {
     })
       .populate(
         "requester",
-        "username avatar avatarEmoji currentStreak lastMomentDate lastSeenAt"
+        "username avatar avatarEmoji currentStreak lastMomentDate lastSeenAt timezone"
       )
       .populate(
         "recipient",
-        "username avatar avatarEmoji currentStreak lastMomentDate lastSeenAt"
+        "username avatar avatarEmoji currentStreak lastMomentDate lastSeenAt timezone"
       )
       .lean();
 
@@ -298,7 +298,8 @@ export class FriendshipService {
             !!friend.lastMomentDate &&
             isSameDay(
               friend.lastMomentDate,
-              new Date()
+              new Date(),
+              friend.timezone || "UTC"
             ),
           isOnline:
             onlineUsers.has(friendId),

@@ -1,20 +1,19 @@
+import { daysBetweenCalendarDates } from "./date.helper.js";
+
 export const calculateStreak = (
     lastMomentDate: Date | null,
-    currentStreak: number
+    currentStreak: number,
+    timeZone = "UTC"
 ) => {
     if (!lastMomentDate) {
         return 1;
     }
 
-    const now = new Date();
-
-    const diff =
-        now.getTime() -
-        lastMomentDate.getTime();
-
     const days =
-        Math.floor(
-            diff / (1000 * 60 * 60 * 24)
+        daysBetweenCalendarDates(
+            lastMomentDate,
+            new Date(),
+            timeZone
         );
 
     if (days === 1) {
