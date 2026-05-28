@@ -511,13 +511,26 @@ export class UserService {
       isFriend ||
       targetId === viewerId;
 
-    const totalMoments =
-      await Moment.countDocuments({
-        user: targetId,
-        createdAt: {
-          $gte: getMomentExpiryCutoff()
-        }
-      });
+    const [totalMoments, friendsCount] =
+      await Promise.all([
+        Moment.countDocuments({
+          user: targetId,
+          createdAt: {
+            $gte: getMomentExpiryCutoff()
+          }
+        }),
+        Friendship.countDocuments({
+          status: "accepted",
+          $or: [
+            {
+              requester: targetId
+            },
+            {
+              recipient: targetId
+            }
+          ]
+        })
+      ]);
 
     const recentMoments =
       canSeeMoments
@@ -556,7 +569,7 @@ export class UserService {
       hasIncomingRequest,
       friendsCount:
         canSeeMoments
-          ? user.friendsCount ?? 0
+          ? friendsCount
           : 0,
       isPrivate:
         user.privacy?.profileVisibility ===
