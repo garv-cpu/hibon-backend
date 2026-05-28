@@ -98,7 +98,7 @@ export class ReactionService {
 
           title: "New reaction",
 
-          message: `reacted ${emoji} to your moment`,
+          message: `@${reactor?.username} reacted ${emoji} to your moment`,
 
           entityId: moment._id.toString()
         });

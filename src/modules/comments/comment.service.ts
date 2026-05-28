@@ -97,7 +97,7 @@ export class CommentService {
           ownerId,
           {
             title: "New comment",
-            body: `@${commenter?.username}: ${text.slice(0, 90)}`,
+            body: `@${commenter?.username} commented on your moment`,
             data: {
               type: "comment",
               momentId

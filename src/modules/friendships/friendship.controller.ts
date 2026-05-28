@@ -80,7 +80,7 @@ export const sendFriendRequest =
                 sender: req.userId!,
                 type: "friend_request",
                 title: "New friend request",
-                message: `${currentUser?.username} sent you a friend request`,
+                message: `@${currentUser?.username} sent you a friend request`,
                 entityId: friendship._id.toString()
             });
 
