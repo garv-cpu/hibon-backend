@@ -10,6 +10,7 @@ type NotificationType =
   | "friend_accept"
   | "friend_reject"
   | "comment"
+  | "mention"
   | "nudge"
   | "moment"
   | "streak"
