@@ -61,6 +61,27 @@ export const sendPushToUser =
       return;
     }
 
+    const ticketErrors =
+      Array.isArray(result?.data)
+        ? result.data.filter(
+            (ticket: {
+              status?: string;
+            }) => ticket.status === "error"
+          )
+        : [];
+
+    if (ticketErrors.length > 0) {
+      logger.error(
+        {
+          userId,
+          tokenCount: tokens.length,
+          result
+        },
+        "Expo push ticket failed"
+      );
+      return;
+    }
+
     logger.info(
       {
         userId,
