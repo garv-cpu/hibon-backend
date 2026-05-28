@@ -172,7 +172,7 @@ export const savePushToken = async (
     },
     {
       upsert: true,
-      new: true,
+      returnDocument: "after",
       runValidators: true
     }
   );
