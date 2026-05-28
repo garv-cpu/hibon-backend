@@ -11,9 +11,19 @@ export const validate =
     const result = schema.safeParse(req.body);
 
     if (!result.success) {
+      const fieldErrors =
+        result.error.flatten().fieldErrors;
+      const firstMessage =
+        Object.values(fieldErrors)
+          .flat()
+          .find(Boolean);
+
       return res.status(400).json({
         success: false,
-        errors: result.error.flatten().fieldErrors
+        message:
+          firstMessage ||
+          "Please check your details",
+        errors: fieldErrors
       });
     }
 

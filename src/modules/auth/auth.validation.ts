@@ -4,10 +4,14 @@ export const registerSchema = z.object({
   username: z
     .string()
     .trim()
+    .toLowerCase()
     .min(3)
     .max(30),
 
   email: z
+    .string()
+    .trim()
+    .toLowerCase()
     .email(),
 
   password: z
@@ -17,7 +21,11 @@ export const registerSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  email: z.email(),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email(),
 
   password: z
     .string()

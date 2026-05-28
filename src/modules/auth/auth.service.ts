@@ -25,8 +25,13 @@ interface LoginInput {
 
 export class AuthService {
     static async register(data: RegisterInput) {
+        const email =
+            data.email.trim().toLowerCase();
+        const username =
+            data.username.trim().toLowerCase();
+
         const existingEmail = await User.findOne({
-            email: data.email
+            email
         });
 
         if (existingEmail) {
@@ -37,7 +42,7 @@ export class AuthService {
         }
 
         const existingUsername = await User.findOne({
-            username: data.username
+            username
         });
 
         if (existingUsername) {
@@ -51,9 +56,9 @@ export class AuthService {
             await bcrypt.hash(data.password, 12);
 
         const user = await User.create({
-            username: data.username,
+            username,
 
-            email: data.email,
+            email,
 
             password: hashedPassword,
 
@@ -100,8 +105,11 @@ export class AuthService {
     }
 
     static async login(data: LoginInput) {
+        const email =
+            data.email.trim().toLowerCase();
+
         const user = await User.findOne({
-            email: data.email
+            email
         }).select("+password +refreshToken");
 
         if (!user) {
