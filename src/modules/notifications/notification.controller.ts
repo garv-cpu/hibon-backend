@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 
 import Notification from "../../database/models/Notification.model.js";
 import { PushToken } from "../../database/models/PushToken.model.js";
+import logger from "../../config/logger.js";
 
 export const getNotifications = async (
   req: Request,
@@ -158,7 +159,8 @@ export const savePushToken = async (
     platform
   } = req.body;
 
-  await PushToken.findOneAndUpdate(
+  const savedToken =
+    await PushToken.findOneAndUpdate(
     {
       token
     },
@@ -173,6 +175,20 @@ export const savePushToken = async (
       new: true,
       runValidators: true
     }
+  );
+
+  logger.info(
+    {
+      userId: req.userId,
+      platform,
+      tokenPrefix:
+        typeof token === "string"
+          ? token.slice(0, 18)
+          : "missing",
+      savedTokenId:
+        savedToken?._id?.toString()
+    },
+    "Push token saved"
   );
 
   res.json({

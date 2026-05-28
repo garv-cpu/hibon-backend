@@ -1,4 +1,5 @@
 import { PushToken } from "../database/models/PushToken.model.js";
+import logger from "../config/logger.js";
 
 interface PushPayload {
   title: string;
@@ -30,7 +31,8 @@ export const sendPushToUser =
         data: payload.data || {}
       }));
 
-    await fetch(
+    const response =
+      await fetch(
       "https://exp.host/--/api/v2/push/send",
       {
         method: "POST",
@@ -41,5 +43,30 @@ export const sendPushToUser =
         },
         body: JSON.stringify(messages)
       }
+    );
+
+    const result = await response.json().catch(
+      () => null
+    );
+
+    if (!response.ok) {
+      logger.error(
+        {
+          userId,
+          status: response.status,
+          result
+        },
+        "Expo push request failed"
+      );
+      return;
+    }
+
+    logger.info(
+      {
+        userId,
+        tokenCount: tokens.length,
+        result
+      },
+      "Expo push request sent"
     );
   };
