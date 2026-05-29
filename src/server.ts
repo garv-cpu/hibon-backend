@@ -51,7 +51,7 @@ const startServer = async () => {
 
   initSocket(server);
 
-  server.listen(env.PORT, () => {
+  server.listen(Number(env.PORT), "0.0.0.0", () => {
     logger.info(
       `🚀 Server running on port ${env.PORT}`
     );
