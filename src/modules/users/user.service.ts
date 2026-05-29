@@ -10,7 +10,6 @@ import { PlusWaitlist } from "../../database/models/PlusWaitlist.model.js";
 import { ApiError } from "../../utils/ApiError.js";
 import mongoose from "mongoose";
 import {
-  cleanupExpiredMoments,
   getMomentExpiryCutoff
 } from "../moments/moment.expiry.js";
 
@@ -67,8 +66,6 @@ const defaultPrivacy = {
 };
 
 const toProfileResponse = async (userId: string) => {
-  await cleanupExpiredMoments();
-
   const user =
     await User.findById(userId).lean();
 
@@ -462,8 +459,6 @@ export class UserService {
     viewerId: string,
     username: string
   ) {
-    await cleanupExpiredMoments();
-
     const user =
       await User.findOne({
         username: username.toLowerCase()

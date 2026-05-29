@@ -12,7 +12,6 @@ import { onlineUsers } from "../../sockets/onlineUsers.js";
 import { NotificationService } from "../notifications/notification.service.js";
 import { sendPushToUser } from "../../lib/pushNotifications.js";
 import {
-  cleanupExpiredMoments,
   getMomentExpiryCutoff
 } from "./moment.expiry.js";
 
@@ -154,8 +153,6 @@ export const getMyMoments =
       req: Request,
       res: Response
     ) => {
-      await cleanupExpiredMoments();
-
       const moments =
         await Moment.find({
           user: req.userId,

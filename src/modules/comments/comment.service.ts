@@ -204,8 +204,6 @@ export class CommentService {
   static async getMomentComments(
     momentId: string
   ) {
-    await cleanupExpiredMoments();
-
     const moment =
       await Moment.findOne({
         _id: momentId,

@@ -131,8 +131,6 @@ export class MomentService {
   static async getFeed(
     userId: string
   ) {
-    await cleanupExpiredMoments();
-
     const currentUser =
       await User.findById(userId)
         .select("blockedUsers")
@@ -267,8 +265,6 @@ export class MomentService {
     userId: string,
     momentId: string
   ) {
-    await cleanupExpiredMoments();
-
     const moment =
       await Moment.findOne({
         _id: momentId,
