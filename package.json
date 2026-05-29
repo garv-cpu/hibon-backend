@@ -9,18 +9,22 @@
   "license": "ISC",
   "author": "Garv Balwani",
   "type": "module",
-  "main": "dist/bootstrap.js",
+
+  "main": "dist/server.js",
+
   "engines": {
     "node": ">=20.19.0"
   },
+
   "scripts": {
-    "start": "node dist/bootstrap.js",
+    "start": "node dist/server.js",
     "postinstall": "npm run build",
     "dev": "nodemon --exec tsx src/server.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
     "build": "tsc"
   },
+
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/bcryptjs": "^2.4.6",
@@ -37,6 +41,7 @@
     "prettier": "^3.8.3",
     "typescript-eslint": "^8.59.4"
   },
+
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
