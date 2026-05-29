@@ -10,11 +10,55 @@ import jwt from "jsonwebtoken";
 import { User } from "../../database/models/User.model.js";
 import { env } from "../../config/env.js";
 import { generateAccessToken } from "./auth.utils.js";
+import { logAuthEvent } from "./auth.log.js";
 
 export const register = asyncHandler(
   async (req: Request, res: Response) => {
-    const result =
-      await AuthService.register(req.body);
+    const email =
+      String(req.body?.email || "")
+        .trim()
+        .toLowerCase();
+    const username =
+      String(req.body?.username || "")
+        .trim()
+        .toLowerCase();
+
+    logAuthEvent({
+      event: "signup_attempt",
+      req,
+      email,
+      username
+    });
+
+    let result: Awaited<
+      ReturnType<typeof AuthService.register>
+    >;
+
+    try {
+      result =
+        await AuthService.register(req.body);
+    } catch (error) {
+      logAuthEvent({
+        event: "signup_failed",
+        req,
+        email,
+        username,
+        reason:
+          error instanceof Error
+            ? error.message
+            : "Signup failed"
+      });
+
+      throw error;
+    }
+
+    logAuthEvent({
+      event: "signup_success",
+      req,
+      email,
+      username,
+      userId: result.user._id.toString()
+    });
 
     res
       .cookie(
@@ -90,8 +134,61 @@ export const checkUsername = asyncHandler(
 
 export const login = asyncHandler(
   async (req: Request, res: Response) => {
-    const result =
-      await AuthService.login(req.body);
+    const identifier =
+      String(
+        req.body?.identifier ||
+          req.body?.email ||
+          ""
+      )
+        .trim()
+        .toLowerCase();
+    const isEmail =
+      identifier.includes("@");
+
+    logAuthEvent({
+      event: "login_attempt",
+      req,
+      email: isEmail
+        ? identifier
+        : undefined,
+      username: !isEmail
+        ? identifier
+        : undefined
+    });
+
+    let result: Awaited<
+      ReturnType<typeof AuthService.login>
+    >;
+
+    try {
+      result =
+        await AuthService.login(req.body);
+    } catch (error) {
+      logAuthEvent({
+        event: "login_failed",
+        req,
+        email: isEmail
+          ? identifier
+          : undefined,
+        username: !isEmail
+          ? identifier
+          : undefined,
+        reason:
+          error instanceof Error
+            ? error.message
+            : "Login failed"
+      });
+
+      throw error;
+    }
+
+    logAuthEvent({
+      event: "login_success",
+      req,
+      email: result.user.email,
+      username: result.user.username,
+      userId: result.user._id.toString()
+    });
 
     res
       .cookie(
@@ -134,6 +231,12 @@ export const refresh = async (req: Request, res: Response) => {
     req.cookies?.refreshToken;
 
   if (!token) {
+    logAuthEvent({
+      event: "jwt_verification_failed",
+      req,
+      reason: "No refresh token"
+    });
+
     throw new ApiError(401, "No refresh token");
   }
 
@@ -159,6 +262,15 @@ export const refresh = async (req: Request, res: Response) => {
       })
     );
   } catch (err) {
+    logAuthEvent({
+      event: "jwt_verification_failed",
+      req,
+      reason:
+        err instanceof Error
+          ? err.message
+          : "Refresh failed"
+    });
+
     throw new ApiError(401, "Refresh failed");
   }
 };
