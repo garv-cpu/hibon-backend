@@ -19,7 +19,8 @@ interface RegisterInput {
 }
 
 interface LoginInput {
-    email: string;
+    email?: string;
+    identifier?: string;
     password: string;
 }
 
@@ -105,11 +106,15 @@ export class AuthService {
     }
 
     static async login(data: LoginInput) {
-        const email =
-            data.email.trim().toLowerCase();
+        const identifier =
+            (data.identifier || data.email || "")
+                .trim()
+                .toLowerCase();
 
         const user = await User.findOne({
-            email
+            [identifier.includes("@")
+                ? "email"
+                : "username"]: identifier
         }).select("+password +refreshToken");
 
         if (!user) {

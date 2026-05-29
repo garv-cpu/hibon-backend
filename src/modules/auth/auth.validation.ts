@@ -20,14 +20,32 @@ export const registerSchema = z.object({
     .max(100)
 });
 
-export const loginSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .email(),
+export const loginSchema = z
+  .object({
+    identifier: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .min(3)
+      .max(120)
+      .optional(),
 
-  password: z
-    .string()
-    .min(6)
-});
+    email: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .email()
+      .optional(),
+
+    password: z
+      .string()
+      .min(6)
+  })
+  .refine(
+    (data) =>
+      Boolean(data.identifier || data.email),
+    {
+      message: "Email or username is required",
+      path: ["identifier"]
+    }
+  );
