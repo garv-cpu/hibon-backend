@@ -255,10 +255,24 @@ export const refresh = async (req: Request, res: Response) => {
     }
 
     const newAccessToken = generateAccessToken(user._id.toString());
+    const safeUser = {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      name: user.name || user.username,
+      avatar: user.avatar,
+      avatarEmoji: user.avatarEmoji,
+      bio: user.bio,
+      currentStreak: user.currentStreak,
+      longestStreak: user.longestStreak,
+      hasCompletedOnboarding:
+        user.hasCompletedOnboarding ?? true
+    };
 
     return res.status(200).json(
       new ApiResponse("Token refreshed", {
-        accessToken: newAccessToken
+        accessToken: newAccessToken,
+        user: safeUser
       })
     );
   } catch (err) {
