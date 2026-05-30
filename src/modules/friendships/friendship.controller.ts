@@ -11,6 +11,7 @@ import { NotificationService } from "../notifications/notification.service.js";
 import { getIO } from "../../sockets/socket.server.js";
 import { onlineUsers } from "../../sockets/onlineUsers.js";
 import { sendPushToUser } from "../../lib/pushNotifications.js";
+import { MessageService } from "../messages/message.service.js";
 
 export const sendFriendRequest =
     asyncHandler(async (req: Request, res: Response) => {
@@ -446,6 +447,28 @@ export const nudgeFriend =
                 new ApiResponse(
                     "Nudge sent",
                     { sent: true }
+                )
+            );
+        }
+    );
+
+export const sendFriendMessage =
+    asyncHandler(
+        async (
+            req: Request,
+            res: Response
+        ) => {
+            const message =
+                await MessageService.sendMessage(
+                    req.userId!,
+                    String(req.body.recipientId || ""),
+                    String(req.body.text || "")
+                );
+
+            res.status(201).json(
+                new ApiResponse(
+                    "Message sent",
+                    message
                 )
             );
         }
