@@ -22,6 +22,7 @@ import reelRoutes from "./modules/reels/reel.routes.js";
 import commentRoutes from "./modules/comments/comment.routes.js";
 import translationRoutes from "./modules/translations/translation.routes.js";
 import discoverRoutes from "./modules/discover/discover.routes.js";
+import messageRoutes from "./modules/messages/message.routes.js";
 
 const app = express();
 
@@ -100,6 +101,11 @@ app.use(
 app.use(
   "/api/v1/discover",
   discoverRoutes
+);
+
+app.use(
+  "/api/v1/messages",
+  messageRoutes
 );
 
 app.use(notFoundMiddleware);

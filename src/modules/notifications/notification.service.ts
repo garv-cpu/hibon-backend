@@ -11,6 +11,7 @@ type NotificationType =
   | "friend_reject"
   | "comment"
   | "mention"
+  | "message"
   | "nudge"
   | "moment"
   | "ON_THIS_DAY"
