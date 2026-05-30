@@ -12,11 +12,11 @@ import { Prompt } from "../../database/models/Prompt.model.js";
 import { ApiError } from "../../utils/ApiError.js";
 
 import {
+  daysBetweenCalendarDates,
   getDateKey,
   isSameDay
 } from "./helpers/date.helper.js";
 
-import { calculateStreak } from "./helpers/streak.helper.js";
 import {
   cleanupExpiredMoments,
   deleteMomentsCascade,
@@ -106,14 +106,69 @@ export class MomentService {
           promptDoc?.title || null
       });
 
-    const newStreak =
-      alreadyPostedToday
-        ? user.currentStreak
-        : calculateStreak(
+    const daysSinceLastMoment =
+      user.lastMomentDate
+        ? daysBetweenCalendarDates(
             user.lastMomentDate,
-            user.currentStreak,
+            now,
             timezone
-          );
+          )
+        : null;
+    const freezesAvailable =
+      user.streakFreezes ?? 0;
+    const missedOneDay =
+      daysSinceLastMoment === 2;
+    const canUseFreeze =
+      missedOneDay &&
+      freezesAvailable > 0;
+    const newStreak =
+      !user.lastMomentDate
+        ? 1
+        : daysSinceLastMoment === 1 ||
+            canUseFreeze
+          ? (user.currentStreak || 0) + 1
+          : 1;
+
+    if (canUseFreeze) {
+      user.streakFreezes =
+        Math.max(
+          freezesAvailable - 1,
+          0
+        );
+      user.freezeHistory = [
+        ...((user.freezeHistory || []) as any),
+        {
+          type: "used",
+          streak:
+            user.currentStreak || 0,
+          date: now
+        }
+      ] as any;
+    }
+
+    const milestone =
+      Math.floor(newStreak / 7) * 7;
+    const lastAwarded =
+      user.lastFreezeAwardedStreak || 0;
+
+    if (
+      milestone >= 7 &&
+      milestone > lastAwarded &&
+      !canUseFreeze
+    ) {
+      user.streakFreezes =
+        (user.streakFreezes || 0) + 1;
+      user.lastFreezeAwardedStreak =
+        milestone;
+      user.freezeHistory = [
+        ...((user.freezeHistory || []) as any),
+        {
+          type: "earned",
+          streak: milestone,
+          date: now
+        }
+      ] as any;
+    }
 
     user.currentStreak = newStreak;
 

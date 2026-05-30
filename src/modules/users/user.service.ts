@@ -184,6 +184,80 @@ const toProfileResponse = async (userId: string) => {
       })
       .lean();
 
+  const currentStreak =
+    user.currentStreak ?? 0;
+  const awardedMilestone =
+    Math.floor(currentStreak / 7) * 7;
+  const lastFreezeAwardedStreak =
+    (user as any).lastFreezeAwardedStreak ?? 0;
+  let streakFreezes =
+    (user as any).streakFreezes ?? 0;
+  let freezeHistory =
+    ((user as any).freezeHistory || []).map(
+      (item: any) => ({
+        type: item.type,
+        streak: item.streak || 0,
+        date: item.date
+      })
+    );
+
+  if (
+    awardedMilestone >= 7 &&
+    awardedMilestone >
+      lastFreezeAwardedStreak
+  ) {
+    const newlyEarned =
+      Math.floor(
+        (
+          awardedMilestone -
+          lastFreezeAwardedStreak
+        ) / 7
+      );
+
+    if (newlyEarned > 0) {
+      const earnedEvents =
+        Array.from(
+          {
+            length: newlyEarned
+          },
+          (_, index) => ({
+            type: "earned",
+            streak:
+              lastFreezeAwardedStreak +
+              (index + 1) * 7,
+            date: new Date()
+          })
+        );
+
+      await User.findByIdAndUpdate(
+        userId,
+        {
+          $inc: {
+            streakFreezes: newlyEarned
+          },
+          $set: {
+            lastFreezeAwardedStreak:
+              awardedMilestone
+          },
+          $push: {
+            freezeHistory: {
+              $each: earnedEvents
+            }
+          }
+        },
+        {
+          runValidators: true
+        }
+      );
+
+      streakFreezes += newlyEarned;
+      freezeHistory = [
+        ...freezeHistory,
+        ...earnedEvents
+      ];
+    }
+  }
+
   return {
     _id: user._id.toString(),
     username: user.username,
@@ -193,14 +267,27 @@ const toProfileResponse = async (userId: string) => {
     avatar: user.avatar || "",
     avatarEmoji:
       user.avatarEmoji || "🌸",
-    currentStreak:
-      user.currentStreak ?? 0,
+    currentStreak,
     bestStreak:
       user.longestStreak ?? 0,
     longestStreak:
       user.longestStreak ?? 0,
     friendsCount,
     totalMoments,
+    freezesAvailable:
+      streakFreezes,
+    streakFreezes,
+    freezeHistory:
+      freezeHistory
+        .sort(
+          (
+            first: any,
+            second: any
+          ) =>
+            new Date(second.date).getTime() -
+            new Date(first.date).getTime()
+        )
+        .slice(0, 12),
     activityDates:
       activityLogs.map(
         (log) => log.loggedDateKey

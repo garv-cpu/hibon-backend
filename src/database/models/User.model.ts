@@ -80,6 +80,39 @@ const userSchema = new Schema(
             default: 0
         },
 
+        streakFreezes: {
+            type: Number,
+            default: 0,
+            min: 0
+        },
+
+        lastFreezeAwardedStreak: {
+            type: Number,
+            default: 0,
+            min: 0
+        },
+
+        freezeHistory: [
+            {
+                type: {
+                    type: String,
+                    enum: [
+                        "earned",
+                        "used"
+                    ],
+                    required: true
+                },
+                streak: {
+                    type: Number,
+                    default: 0
+                },
+                date: {
+                    type: Date,
+                    default: Date.now
+                }
+            }
+        ],
+
         hasCompletedOnboarding: {
             type: Boolean,
             default: true
