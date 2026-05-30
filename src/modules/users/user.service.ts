@@ -203,6 +203,40 @@ const toProfileResponse = async (userId: string) => {
 
   const currentStreak =
     user.currentStreak ?? 0;
+  const activityDateKeys =
+    new Set(
+      activityLogs.map(
+        (log) => log.loggedDateKey
+      )
+    );
+
+  if (
+    currentStreak > 0 &&
+    user.lastMomentDate
+  ) {
+    const streakEnd =
+      new Date(user.lastMomentDate);
+
+    Array.from(
+      {
+        length: currentStreak
+      },
+      (_, index) => {
+        const date =
+          new Date(streakEnd);
+        date.setDate(
+          streakEnd.getDate() - index
+        );
+        return getDateKey(
+          date,
+          timezone
+        );
+      }
+    ).forEach((dateKey) =>
+      activityDateKeys.add(dateKey)
+    );
+  }
+
   const awardedMilestone =
     Math.floor(currentStreak / 7) * 7;
   const lastFreezeAwardedStreak =
@@ -306,9 +340,7 @@ const toProfileResponse = async (userId: string) => {
         )
         .slice(0, 12),
     activityDates:
-      activityLogs.map(
-        (log) => log.loggedDateKey
-      ),
+      Array.from(activityDateKeys),
     hasCompletedOnboarding:
       user.hasCompletedOnboarding ?? true
   };
