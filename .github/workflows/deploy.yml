@@ -9,15 +9,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to server
+      - name: Execute deployment script on server
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ~/hibon-backend
-            git pull origin main
-            npm install
-            npm run build
-            pm2 restart hibon-backend
+            bash ~/deploy.sh
