@@ -15,8 +15,7 @@ import {
     getFriends,
     getPendingRequests,
     removeFriend,
-    nudgeFriend,
-    sendFriendMessage
+    nudgeFriend
 } from "./friendship.controller.js";
 
 const router = Router();
@@ -61,12 +60,6 @@ router.post(
     "/nudge",
     protect,
     nudgeFriend
-);
-
-router.post(
-    "/message",
-    protect,
-    sendFriendMessage
 );
 
 export default router;
