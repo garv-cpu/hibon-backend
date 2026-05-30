@@ -3,6 +3,7 @@ import { Friendship } from "../../database/models/Friendship.model.js";
 import { Moment } from "../../database/models/Moment.model.js";
 import { Reaction } from "../../database/models/Reaction.model.js";
 import { Comment } from "../../database/models/Comment.model.js";
+import { MomentLog } from "../../database/models/MomentLog.model.js";
 
 import { User } from "../../database/models/User.model.js";
 
@@ -10,7 +11,10 @@ import { Prompt } from "../../database/models/Prompt.model.js";
 
 import { ApiError } from "../../utils/ApiError.js";
 
-import { isSameDay } from "./helpers/date.helper.js";
+import {
+  getDateKey,
+  isSameDay
+} from "./helpers/date.helper.js";
 
 import { calculateStreak } from "./helpers/streak.helper.js";
 import {
@@ -124,6 +128,32 @@ export class MomentService {
     user.lastMomentDate = now;
 
     await user.save();
+
+    await MomentLog.updateOne(
+      {
+        user: userId,
+        loggedDateKey:
+          getDateKey(
+            now,
+            timezone
+          )
+      },
+      {
+        $setOnInsert: {
+          user: userId,
+          loggedDateKey:
+            getDateKey(
+              now,
+              timezone
+            ),
+          loggedAt: now,
+          timezone
+        }
+      },
+      {
+        upsert: true
+      }
+    );
 
     return moment;
   }

@@ -1,5 +1,6 @@
 import { User } from "../../database/models/User.model.js";
 import { Moment } from "../../database/models/Moment.model.js";
+import { MomentLog } from "../../database/models/MomentLog.model.js";
 import { Reaction } from "../../database/models/Reaction.model.js";
 import { Comment } from "../../database/models/Comment.model.js";
 import { Friendship } from "../../database/models/Friendship.model.js";
@@ -12,6 +13,9 @@ import mongoose from "mongoose";
 import {
   getMomentExpiryCutoff
 } from "../moments/moment.expiry.js";
+import {
+  getDateKey
+} from "../moments/helpers/date.helper.js";
 
 interface UpdateMeInput {
   name?: string;
@@ -97,6 +101,89 @@ const toProfileResponse = async (userId: string) => {
       ]
     });
 
+  const timezone =
+    user.timezone || "UTC";
+  const activeMoments =
+    await Moment.find({
+      user: userId,
+      createdAt: {
+        $gte: getMomentExpiryCutoff()
+      }
+    })
+      .select("createdAt")
+      .lean();
+
+  const backfillLogs =
+    [
+      ...activeMoments.map((moment) => ({
+        loggedDateKey:
+          getDateKey(
+            moment.createdAt,
+            timezone
+          ),
+        loggedAt: moment.createdAt
+      })),
+      ...(user.lastMomentDate
+        ? [
+            {
+              loggedDateKey:
+                getDateKey(
+                  user.lastMomentDate,
+                  timezone
+                ),
+              loggedAt:
+                user.lastMomentDate
+            }
+          ]
+        : [])
+    ];
+
+  if (backfillLogs.length) {
+    await MomentLog.bulkWrite(
+      backfillLogs.map((log) => ({
+        updateOne: {
+          filter: {
+            user: userId,
+            loggedDateKey:
+              log.loggedDateKey
+          },
+          update: {
+            $setOnInsert: {
+              user: userId,
+              loggedDateKey:
+                log.loggedDateKey,
+              loggedAt: log.loggedAt,
+              timezone
+            }
+          },
+          upsert: true
+        }
+      })),
+      {
+        ordered: false
+      }
+    ).catch(() => undefined);
+  }
+
+  const oneYearAgo =
+    new Date(
+      Date.now() -
+        366 * 24 * 60 * 60 * 1000
+    );
+
+  const activityLogs =
+    await MomentLog.find({
+      user: userId,
+      loggedAt: {
+        $gte: oneYearAgo
+      }
+    })
+      .select("loggedDateKey")
+      .sort({
+        loggedAt: -1
+      })
+      .lean();
+
   return {
     _id: user._id.toString(),
     username: user.username,
@@ -114,6 +201,10 @@ const toProfileResponse = async (userId: string) => {
       user.longestStreak ?? 0,
     friendsCount,
     totalMoments,
+    activityDates:
+      activityLogs.map(
+        (log) => log.loggedDateKey
+      ),
     hasCompletedOnboarding:
       user.hasCompletedOnboarding ?? true
   };
