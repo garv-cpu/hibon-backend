@@ -1,9 +1,11 @@
 import mongoose from "mongoose";
 
 import { MomentLog } from "../../database/models/MomentLog.model.js";
+import { Moment } from "../../database/models/Moment.model.js";
 import { Reel } from "../../database/models/Reel.model.js";
 import { User } from "../../database/models/User.model.js";
 import { ApiError } from "../../utils/ApiError.js";
+import { getDateKey } from "../moments/helpers/date.helper.js";
 
 interface GenerateReelInput {
   month: number;
@@ -44,6 +46,80 @@ const toMomentSnapshot = (
     log.loggedAt ||
     log.createdAt
 });
+
+const toStoredMomentSnapshot = (
+  moment: any
+) => ({
+  _id:
+    moment.momentId?.toString?.() ||
+    moment._id?.toString?.() ||
+    "",
+  momentId:
+    moment.momentId,
+  text: moment.text || "",
+  emoji: moment.emoji || "",
+  createdAt:
+    moment.createdAt ||
+    moment.loggedDate,
+  loggedDate:
+    moment.loggedDate ||
+    moment.createdAt
+});
+
+const snapshotDayKey = (
+  moment: ReturnType<typeof toMomentSnapshot>
+) => {
+  const date =
+    moment.loggedDate ||
+    moment.createdAt;
+
+  if (!date) {
+    return moment._id;
+  }
+
+  return new Date(date)
+    .toISOString()
+    .slice(0, 10);
+};
+
+const mergeMomentSnapshots = (
+  primary: ReturnType<typeof toMomentSnapshot>[],
+  fallback: ReturnType<typeof toMomentSnapshot>[]
+) => {
+  const byDay =
+    new Map<
+      string,
+      ReturnType<typeof toMomentSnapshot>
+    >();
+
+  fallback.forEach((moment) => {
+    byDay.set(
+      snapshotDayKey(moment),
+      moment
+    );
+  });
+
+  primary.forEach((moment) => {
+    byDay.set(
+      snapshotDayKey(moment),
+      moment
+    );
+  });
+
+  return Array.from(byDay.values()).sort(
+    (a, b) =>
+      new Date(
+        a.loggedDate ||
+          a.createdAt ||
+          0
+      ).getTime() -
+      new Date(
+        b.loggedDate ||
+          b.createdAt ||
+          0
+      ).getTime()
+  );
+};
 
 const buildSummary = (
   moments: ReturnType<typeof toMomentSnapshot>[]
@@ -105,24 +181,12 @@ const enrichReel = async (
       .lean();
 
   const moments =
-    logs.length
-      ? logs.map(toMomentSnapshot)
-      : (reel.moments || []).map((moment: any) => ({
-          _id:
-            moment.momentId?.toString?.() ||
-            moment._id?.toString?.() ||
-            "",
-          momentId:
-            moment.momentId,
-          text: moment.text || "",
-          emoji: moment.emoji || "",
-          createdAt:
-            moment.createdAt ||
-            moment.loggedDate,
-          loggedDate:
-            moment.loggedDate ||
-            moment.createdAt
-        }));
+    mergeMomentSnapshots(
+      logs.map(toMomentSnapshot),
+      (reel.moments || []).map(
+        toStoredMomentSnapshot
+      )
+    );
 
   const moodBreakdown =
     Object.fromEntries(
@@ -160,6 +224,75 @@ const enrichReel = async (
       null
   };
 };
+
+const backfillMomentLogsForMonth =
+  async (
+    userId: string,
+    month: number,
+    year: number
+  ) => {
+    const user =
+      await User.findById(userId)
+        .select("timezone")
+        .lean();
+    const timezone =
+      user?.timezone || "UTC";
+    const {
+      start,
+      end
+    } = monthRange(month, year);
+
+    const moments =
+      await Moment.find({
+        user: userId,
+        createdAt: {
+          $gte: start,
+          $lt: end
+        }
+      })
+        .select("_id text emoji createdAt")
+        .lean();
+
+    if (!moments.length) {
+      return;
+    }
+
+    await MomentLog.bulkWrite(
+      moments.map((moment: any) => ({
+        updateOne: {
+          filter: {
+            user: userId,
+            loggedDateKey:
+              getDateKey(
+                moment.createdAt,
+                timezone
+              )
+          },
+          update: {
+            $set: {
+              moment: moment._id,
+              text: moment.text || "",
+              emoji: moment.emoji || "",
+              loggedAt: moment.createdAt,
+              timezone
+            },
+            $setOnInsert: {
+              user: userId,
+              loggedDateKey:
+                getDateKey(
+                  moment.createdAt,
+                  timezone
+                )
+            }
+          },
+          upsert: true
+        }
+      })),
+      {
+        ordered: false
+      }
+    );
+  };
 
 export class ReelService {
   static async getMyReels(
@@ -212,6 +345,12 @@ export class ReelService {
     userId: string,
     { month, year }: GenerateReelInput
   ) {
+    await backfillMomentLogsForMonth(
+      userId,
+      month,
+      year
+    );
+
     const user =
       await User.findById(userId)
         .select("longestStreak")
@@ -235,8 +374,22 @@ export class ReelService {
         .limit(31)
         .lean();
 
+    const existingReel =
+      await Reel.findOne({
+        user: userId,
+        month,
+        year
+      })
+        .select("moments regenerationCount")
+        .lean();
+
     const moments =
-      logs.map(toMomentSnapshot);
+      mergeMomentSnapshots(
+        logs.map(toMomentSnapshot),
+        (existingReel?.moments || []).map(
+          toStoredMomentSnapshot
+        )
+      );
     const moodBreakdown =
       buildMoodBreakdown(moments);
     const topMoods =

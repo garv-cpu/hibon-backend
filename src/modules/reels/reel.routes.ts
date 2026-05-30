@@ -37,4 +37,10 @@ router.post(
   regenerateReel
 );
 
+router.patch(
+  "/:reelId/regenerate",
+  protect,
+  regenerateReel
+);
+
 export default router;
