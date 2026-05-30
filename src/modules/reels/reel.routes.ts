@@ -2,7 +2,12 @@ import { Router } from "express";
 
 import { protect } from "../auth/auth.middleware.js";
 import { validate } from "../../middleware/validate.middleware.js";
-import { generateReel, getMyReels } from "./reel.controller.js";
+import {
+  generateReel,
+  getMyReels,
+  getReelById,
+  regenerateReel
+} from "./reel.controller.js";
 import { generateReelSchema } from "./reel.validation.js";
 
 const router = Router();
@@ -18,6 +23,18 @@ router.post(
   protect,
   validate(generateReelSchema),
   generateReel
+);
+
+router.get(
+  "/:reelId",
+  protect,
+  getReelById
+);
+
+router.post(
+  "/:reelId/regenerate",
+  protect,
+  regenerateReel
 );
 
 export default router;

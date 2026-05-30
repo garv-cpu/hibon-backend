@@ -44,3 +44,45 @@ export const generateReel =
       );
     }
   );
+
+export const getReelById =
+  asyncHandler(
+    async (
+      req: Request,
+      res: Response
+    ) => {
+      const reel =
+        await ReelService.getById(
+          req.userId!,
+          String(req.params.reelId)
+        );
+
+      res.json(
+        new ApiResponse(
+          "Reel fetched",
+          reel
+        )
+      );
+    }
+  );
+
+export const regenerateReel =
+  asyncHandler(
+    async (
+      req: Request,
+      res: Response
+    ) => {
+      const reel =
+        await ReelService.regenerate(
+          req.userId!,
+          String(req.params.reelId)
+        );
+
+      res.json(
+        new ApiResponse(
+          "Reel regenerated",
+          reel
+        )
+      );
+    }
+  );

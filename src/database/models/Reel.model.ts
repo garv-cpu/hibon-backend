@@ -35,6 +35,59 @@ const reelSchema = new Schema(
     topMoods: {
       type: [String],
       default: []
+    },
+
+    isGenerated: {
+      type: Boolean,
+      default: true
+    },
+
+    generatedAt: {
+      type: Date,
+      default: Date.now
+    },
+
+    regenerationCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 3
+    },
+
+    moments: [
+      {
+        momentId: {
+          type: Schema.Types.ObjectId,
+          ref: "Moment"
+        },
+        text: {
+          type: String,
+          default: ""
+        },
+        emoji: {
+          type: String,
+          default: ""
+        },
+        createdAt: {
+          type: Date,
+          required: true
+        },
+        loggedDate: {
+          type: Date,
+          required: true
+        }
+      }
+    ],
+
+    moodBreakdown: {
+      type: Map,
+      of: Number,
+      default: {}
+    },
+
+    longestStreak: {
+      type: Number,
+      default: 0
     }
   },
   {

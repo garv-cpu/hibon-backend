@@ -4,6 +4,7 @@ import { Moment } from "../../database/models/Moment.model.js";
 import { Reaction } from "../../database/models/Reaction.model.js";
 import { Comment } from "../../database/models/Comment.model.js";
 import { MomentLog } from "../../database/models/MomentLog.model.js";
+import { Reel } from "../../database/models/Reel.model.js";
 
 import { User } from "../../database/models/User.model.js";
 
@@ -194,6 +195,13 @@ export class MomentService {
           )
       },
       {
+        $set: {
+          moment: moment._id,
+          text: moment.text,
+          emoji: moment.emoji,
+          loggedAt: now,
+          timezone
+        },
         $setOnInsert: {
           user: userId,
           loggedDateKey:
@@ -201,8 +209,7 @@ export class MomentService {
               now,
               timezone
             ),
-          loggedAt: now,
-          timezone
+          loggedAt: now
         }
       },
       {
@@ -412,9 +419,34 @@ export class MomentService {
         )
         .lean();
 
+    const momentDate =
+      new Date(moment.createdAt);
+    const reel =
+      await Reel.findOne({
+        user: ownerId,
+        month:
+          momentDate.getMonth() + 1,
+        year:
+          momentDate.getFullYear()
+      })
+        .select("_id month year")
+        .lean();
+
     return {
       ...moment,
       reactions,
+      reelId:
+        reel?._id?.toString?.() ||
+        null,
+      reel:
+        reel
+          ? {
+              _id:
+                reel._id.toString(),
+              month: reel.month,
+              year: reel.year
+            }
+          : null,
       prompt: moment.promptText
         ? {
             text: moment.promptText

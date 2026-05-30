@@ -10,6 +10,10 @@ const momentLogSchema = new Schema(
       ref: "User",
       required: true
     },
+    moment: {
+      type: Schema.Types.ObjectId,
+      ref: "Moment"
+    },
     loggedDateKey: {
       type: String,
       required: true
@@ -22,6 +26,15 @@ const momentLogSchema = new Schema(
     timezone: {
       type: String,
       default: "UTC"
+    },
+    text: {
+      type: String,
+      default: "",
+      maxlength: 300
+    },
+    emoji: {
+      type: String,
+      default: ""
     }
   },
   {

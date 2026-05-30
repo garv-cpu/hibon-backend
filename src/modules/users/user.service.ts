@@ -110,7 +110,7 @@ const toProfileResponse = async (userId: string) => {
         $gte: getMomentExpiryCutoff()
       }
     })
-      .select("createdAt")
+      .select("_id createdAt text emoji")
       .lean();
 
   const backfillLogs =
@@ -121,7 +121,10 @@ const toProfileResponse = async (userId: string) => {
             moment.createdAt,
             timezone
           ),
-        loggedAt: moment.createdAt
+        loggedAt: moment.createdAt,
+        moment: moment._id,
+        text: moment.text,
+        emoji: moment.emoji
       })),
       ...(user.lastMomentDate
         ? [
@@ -132,7 +135,10 @@ const toProfileResponse = async (userId: string) => {
                   timezone
                 ),
               loggedAt:
-                user.lastMomentDate
+                user.lastMomentDate,
+              moment: undefined,
+              text: undefined,
+              emoji: undefined
             }
           ]
         : [])
@@ -148,6 +154,17 @@ const toProfileResponse = async (userId: string) => {
               log.loggedDateKey
           },
           update: {
+            $set: {
+              ...(log.text
+                ? { text: log.text }
+                : {}),
+              ...(log.emoji
+                ? { emoji: log.emoji }
+                : {}),
+              ...(log.moment
+                ? { moment: log.moment }
+                : {})
+            },
             $setOnInsert: {
               user: userId,
               loggedDateKey:

@@ -15,14 +15,16 @@ const startServer = async () => {
     { connectDB },
     { default: logger },
     { initSocket },
-    { cleanupExpiredMoments }
+    { cleanupExpiredMoments },
+    { scheduleMemoryJobs }
   ] = await Promise.all([
     import("./app.js"),
     import("./config/env.js"),
     import("./config/db.js"),
     import("./config/logger.js"),
     import("./sockets/socket.server.js"),
-    import("./modules/moments/moment.expiry.js")
+    import("./modules/moments/moment.expiry.js"),
+    import("./modules/moments/memory.cron.js")
   ]);
 
   await connectDB();
@@ -45,6 +47,7 @@ const startServer = async () => {
     );
 
   expiryInterval.unref();
+  scheduleMemoryJobs();
 
   const server =
     http.createServer(app);

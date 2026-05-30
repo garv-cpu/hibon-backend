@@ -4,7 +4,8 @@ import {
     createMoment,
     getFeed,
     getMomentById,
-    getMyMoments
+    getMyMoments,
+    getOnThisDay
 } from "./moment.controller.js";
 
 import { protect } from "../auth/auth.middleware.js";
@@ -29,13 +30,19 @@ router.get(
 );
 
 router.get(
-    "/feed",
-    protect,
-    getFeed
+  "/feed",
+  protect,
+  getFeed
 );
 
 router.get(
-    "/:id",
+  "/on-this-day",
+  protect,
+  getOnThisDay
+);
+
+router.get(
+  "/:id",
     protect,
     getMomentById
 );

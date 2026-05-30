@@ -27,6 +27,7 @@ const notificationSchema =
           "mention",
           "nudge",
           "moment",
+          "ON_THIS_DAY",
           "streak",
           "reel"
         ],

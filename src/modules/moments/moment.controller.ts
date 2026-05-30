@@ -14,6 +14,9 @@ import { sendPushToUser } from "../../lib/pushNotifications.js";
 import {
   getMomentExpiryCutoff
 } from "./moment.expiry.js";
+import {
+  getOnThisDayForUser
+} from "./onThisDay.service.js";
 
 export const createMoment =
   asyncHandler(
@@ -190,6 +193,26 @@ export const getMomentById =
         new ApiResponse(
           "Moment fetched",
           moment
+        )
+      );
+    }
+  );
+
+export const getOnThisDay =
+  asyncHandler(
+    async (
+      req: Request,
+      res: Response
+    ) => {
+      const data =
+        await getOnThisDayForUser(
+          req.userId!
+        );
+
+      res.json(
+        new ApiResponse(
+          "On this day fetched",
+          data
         )
       );
     }
